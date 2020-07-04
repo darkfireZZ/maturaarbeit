@@ -1,3 +1,3 @@
 # Maturaarbeit
 
-Hier befindet der Code für meine Maturaarbeit.
+Hier befindet sich der Code für meine Maturaarbeit.
