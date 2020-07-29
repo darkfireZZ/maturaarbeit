@@ -88,6 +88,10 @@ namespace CubingTests
 
             Assert.AreEqual(udEdgePermutationMoveTable.GetLength(0), Coordinates.NumUdEdgePermutationCoords);
             Assert.AreEqual(udEdgePermutationMoveTable.GetLength(1), Constants.NumMoves);
+
+            for (int udEdgePermutation = 0; udEdgePermutation < Coordinates.NumUdEdgePermutationCoords; udEdgePermutation++)
+                for (int move = 0; move < Constants.NumMoves; move++)
+                    Assert.IsTrue(udEdgePermutationMoveTable[udEdgePermutation, move] < Coordinates.NumUdEdgePermutationCoords);
         }
 
         [TestMethod]

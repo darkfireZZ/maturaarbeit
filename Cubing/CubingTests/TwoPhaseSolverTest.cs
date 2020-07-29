@@ -8,27 +8,24 @@ namespace CubingTests
     [TestClass]
     public class TwoPhaseSolverTest
     {
-        [TestMethod]
-        public void Test()
+        [DataRow("R")]
+        [DataRow("R U R'")]
+        [DataRow("L B2 D F' R' U L2")]
+        [DataRow("R U R' U' R' F R2 U' R' U' R U R' F'")]
+        [DataTestMethod]
+        public void Test1(string algString)
         {
-            Alg testAlg1 = Alg.FromString("R U R' U'");
-            Alg solution1 = TwoPhaseSolver.FindPhase1Solution(CubieCube.FromAlg(testAlg1));
-            Assert.IsTrue(testAlg1.Length >= solution1.Length);
-            Console.WriteLine(solution1);
+            Alg alg = Alg.FromString(algString);
+            CubieCube cube = CubieCube.FromAlg(alg);
 
-            Alg testAlg2 = Alg.FromString("R U L D B F2 R' D2 R D' B2 F' D'");
-            Alg solution2 = TwoPhaseSolver.FindPhase1Solution(CubieCube.FromAlg(testAlg2));
-            Assert.IsTrue(testAlg2.Length >= solution2.Length);
-            Console.WriteLine(solution2);
+            TimeSpan timeout = TimeSpan.FromSeconds(10);
+            int returnLength = 20;
+            int requiredLength = -1;
 
-            Alg testAlg3 = Alg.FromString("R2 U' L2 D2 F2");
-            Alg solution3 = TwoPhaseSolver.FindPhase2Solution(CubieCube.FromAlg(testAlg3));
-            Console.WriteLine(solution3);
+            TwoPhaseSolver.alg = algString;
+            Alg solution = TwoPhaseSolver.FindSolution(cube, timeout, returnLength, requiredLength);
 
-            Alg testAlg4 = Alg.FromString("R U2 B2 L' B' D2 U B F2 L F R'");
-            CubieCube cube = CubieCube.FromAlg(testAlg4);
-            Alg solution4 = TwoPhaseSolver.FindSolution(cube);
-            Console.WriteLine(solution4);
+            Console.WriteLine(solution);
         }
     }
 }

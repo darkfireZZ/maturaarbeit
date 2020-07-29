@@ -1,292 +1,335 @@
 ﻿using static Cubing.ThreeByThree.Constants;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 
+//TODO implement inverse solving
 namespace Cubing.ThreeByThree.TwoPhase
 {
     /// <summary>
-    /// A near optimal solver for phase 1 of the two-phase algorithm.
+    /// An implementation of Herbert Kociemba's two-phase algorithm.
     /// </summary>
-    public static class TwoPhaseSolver
+    public class TwoPhaseSolver
     {
-        //public static int NoPhase2MovesThreshold { get; set; } = 5;
+        private static object _lockObject = new object();
 
+        public const int MaxAllowedPhase2Length = 11;
+
+        private class SyncedIntWrapper
+        {
+            private int _value = default;
+
+            public int Value
+            {
+                get
+                {
+                    lock (_lockObject)
+                        return _value;
+                }
+                set
+                {
+                    lock (_lockObject)
+                        _value = value;
+                }
+            }
+        }
+
+        private class SyncedBoolWrapper
+        {
+            private bool _value = default;
+
+            public bool Value
+            {
+                get
+                {
+                    lock (_lockObject)
+                        return _value;
+                }
+                set
+                {
+                    lock (_lockObject)
+                        _value = value;
+                }
+            }
+        }
+
+        private const int SameFace = 0, SameAxisInWrongOrder = 3;
+
+        public static string alg = null;
+
+        private SyncedBoolWrapper _isTerminated = null;
+        private SyncedIntWrapper _shortestSolution = null;
+        private List<Alg> _solutions = null;
+        private Stopwatch _timePassed = null;
+        private TimeSpan _timeout = default;
+        private int _returnLength = 20;
+        private int _requiredLength = 30;
+
+        private CubieCube _cubeToSolve = null;
+
+        private int _cp = 0;
+        private int _uEdges = 0;
+        private int _dEdges = 0;
+
+        //private bool _solveInverse = false;
+        private int _rotation = 0;
+
+        private int[] _currentPhase1Solution = null;
+        private int[] _currentPhase2Solution = null;
+
+        //TEST with impossible length
         /// <summary>
-        /// Find a near optimal phase 1 solution for a <see cref="CubieCube"/>.
+        /// Find a solution for a <see cref="CubieCube"/> using six concurrent
+        /// threads.
         /// </summary>
-        /// <param name="cube">The cube to solve.</param>
-        /// <param name="prune">Whether to use pruning.</param>
+        /// <param name="cubeToSolve">The cube to solve.</param>
+        /// <param name="timeout">
+        /// Interrupt the search after this number of milliseconds.
+        /// </param>
+        /// <param name="returnLength">
+        /// The search stops as soon as a solution of the specified length is
+        /// found. Be careful with setting <paramref name="returnLength"/> to a
+        /// value smaller than 20. You are allowed to do this, though there
+        /// might be no solution with your length. In that case the program
+        /// will try to find a solution which matches the given length. This
+        /// may take a VERY long time.
+        /// </param>
+        /// <param name="requiredLength">
+        /// Ignore the timeout until a solution of a length smaller than or equal to
+        /// <paramref name="requiredLength"/> is found. If the value of
+        /// <paramref name="requiredLength"/> is negative, this parameter is ignored
+        /// (default behaviour). If <paramref name="requiredLength"/> is not
+        /// negative it must be larger than or equal to
+        /// <paramref name="returnLength"/>. Setting the value of
+        /// <paramref name="requiredLength"/> avoids returning null. Setting the
+        /// value to 30 or higher will return the first solution found after
+        /// timeout.
+        /// </param>
         /// <returns>
-        /// A near optimal phase 1 solution for <paramref name="cube"/>.
+        /// A solution for the specified cube or null if no solution is found
+        /// for the given parameters.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="cube"/> is null.
+        /// Thrown if <paramref name="cubeToSolve"/> is null.
         /// </exception>
-        public static Alg FindPhase1Solution(CubieCube cube, bool prune = true)
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="returnLength"/> is negative or if
+        /// <paramref name="requiredLength"/> is positive but smaller than
+        /// <paramref name="returnLength"/>.
+        /// </exception>
+        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, int returnLength, int requiredLength = 30)
         {
-            if (cube is null)
-                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if (cubeToSolve is null)
+                throw new ArgumentNullException(nameof(cubeToSolve) + " is null.");
+            if (returnLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(returnLength) + " cannot be negative: " + returnLength);
+            if (requiredLength > 0 && requiredLength < returnLength)
+                throw new ArgumentOutOfRangeException(nameof(requiredLength) + " must either be negative or >= " + nameof(returnLength) + ": " + requiredLength + " (" + nameof(requiredLength) + ") < " + returnLength + " (" + nameof(returnLength) + ")");
+            
+            Stopwatch timePassed = new Stopwatch();
+            timePassed.Start();
 
-            int eo = Coordinates.GetEoCoord(cube);
-            int co = Coordinates.GetCoCoord(cube);
-            int equator = Coordinates.GetEquatorDistributionCoord(cube);
+            SyncedBoolWrapper isTerminated = new SyncedBoolWrapper() { Value = false };
+            SyncedIntWrapper shortestSolution = new SyncedIntWrapper() { Value = 30 };
+            List<Alg> solutions = new List<Alg>();
 
-            return FindPhase1Solution(eo, co, equator, prune);
-        }
+            Thread[] solvers = new Thread[1];
 
-        /// <summary>
-        /// Find a near optimal phase 1 solution for a cube using eo, co and
-        /// equator coordinates.
-        /// </summary>
-        /// <param name="co">The edge orientation coordinate of the cube to solve.</param>
-        /// <param name="eo">The corner orientation coordinate of the cube to solve.</param>
-        /// <param name="equator">The equator coordinate of the cube to solve.</param>
-        /// <param name="prune">Whether to use pruning.</param>
-        /// <returns>
-        /// A near optimal phase 1 solution for the given coordinates.
-        /// </returns>
-        public static Alg FindPhase1Solution(int eo, int co, int equator, bool prune = true)
-        {
-            TableController.InitializePhase1MoveTables();
-            if (prune)
-                TableController.InitializePhase1PruningTable();
-
-            if (prune)
+            for (int orientation = 0; orientation < 1; orientation++)
             {
-                //find depth
-                int pruningCoord = Coordinates.GetPruningIndex(co, eo, equator);
-                int requiredMoves = TableController.Phase1PruningTable[pruningCoord];
-
-                int[] solutionArray = new int[requiredMoves];
-                if (SearchPhase1(eo, co, equator, 0, solutionArray, prune)) //if a solution is found
-                    return Alg.FromEnumerable(solutionArray.Cast<Move>());
-                else
-                    return null;
-            }
-            else
-            {
-                for (int depth = 0; depth <= TwoPhaseConstants.MaxDepthPhase1; depth++)
+                TwoPhaseSolver solver = new TwoPhaseSolver()
                 {
-                    int[] solutionArray = new int[depth];
-                    if (SearchPhase1(eo, co, equator, 0, solutionArray, prune))
-                        return Alg.FromEnumerable(solutionArray.Cast<Move>());
-                }
-                return null;
+                    _cubeToSolve = cubeToSolve,
+                    _timePassed = timePassed,
+                    _timeout = timeout,
+                    _returnLength = returnLength,
+                    _requiredLength = requiredLength,
+                    _isTerminated = isTerminated,
+                    _solutions = solutions,
+                    _shortestSolution = shortestSolution,
+                    _rotation = orientation % 3/*,
+                    _solveInverse = orientation / 3 == 1*/
+                };
+
+                Thread solverThread = new Thread(new ThreadStart(solver.StartSearch));
+                solvers[orientation] = solverThread;
+                solverThread.Start();
             }
+
+            foreach (Thread solverThread in solvers)
+                solverThread.Join();
+
+            timePassed.Stop();
+
+            return solutions.FindLast(alg => true);
         }
 
-        private static bool SearchPhase1(int eo, int co, int equator, int depth, int[] solution, bool prune)
-        {
-            int length = solution.Length;
-            int remainingMoves = length - depth;
+        private TwoPhaseSolver() { }
 
-            //return solution if solved
-            if (remainingMoves == 0)
+        private void StartSearch()
+        {
+            TableController.InitializePhase1Tables();
+            TableController.InitializePhase2Tables();
+
+            _currentPhase1Solution = new int[TwoPhaseConstants.MaxDepthPhase1];
+            _currentPhase2Solution = new int[MaxAllowedPhase2Length];
+
+            for (int i = 0; i < _rotation; i++)
             {
-                if (eo == 0 && co == 0 && equator == 0)
-                    return true;
-                else
-                    return false;
+                _cubeToSolve.Rotate(Rotation.x1);
+                _cubeToSolve.Rotate(Rotation.y1);
             }
 
-            //prune
-            if (prune)
+            //calculate coordinates
+            int co = Coordinates.GetCoCoord(_cubeToSolve);
+            int cp = Coordinates.GetCpCoord(_cubeToSolve);
+            int eo = Coordinates.GetEoCoord(_cubeToSolve);
+            int equator = Coordinates.GetEquatorCoord(_cubeToSolve);
+            int uEdges = Coordinates.GetUEdgeCoord(_cubeToSolve);
+            int dEdges = Coordinates.GetDEdgeCoord(_cubeToSolve);
+
+            //store coordinates used in phase 2
+            _cp = cp;
+            _uEdges = uEdges;
+            _dEdges = dEdges;
+
+            //TODO change 20
+            int pruningIndex = Coordinates.GetPhase1PruningIndex(co, eo, equator / Coordinates.NumEquatorPermutationCoords);
+            int minPhase1Length = TableController.Phase1PruningTable[pruningIndex];
+            for (int phase1Length = minPhase1Length; phase1Length < 20; phase1Length++)
+                SearchPhase1(eo, co, equator, 0, phase1Length);
+        }
+
+        private void SearchPhase1(int eo, int co, int equator, int depth, int remainingMoves)
+        {
+            if (_isTerminated.Value)
+                return;
+
+            if (remainingMoves == 0) //check if solved
             {
-                int pruningCoord = Coordinates.GetPruningIndex(co, eo, equator);
-                if (TableController.Phase1PruningTable[pruningCoord] > remainingMoves)
-                    return false;
+                lock (_lockObject) //manage timeout
+                    if (_timePassed.Elapsed > _timeout && (_requiredLength < 0 || (_solutions.Count > 0 && _shortestSolution.Value <= _requiredLength)))
+                        _isTerminated.Value = true;
+
+                int cp = _cp;
+                int uEdges = _uEdges;
+                int dEdges = _dEdges;
+                int equatorPermutation = equator;
+
+                CubieCube compareCube = _cubeToSolve.Clone();
+
+                for (int moveIndex = 0; moveIndex < depth; moveIndex++)
+                {
+                    int move = _currentPhase1Solution[moveIndex];
+
+                    cp = TableController.CpMoveTable[cp, move];
+                    uEdges = TableController.UEdgesMoveTable[uEdges, move];
+                    dEdges = TableController.DEdgesMoveTable[dEdges, move];
+                    compareCube.ApplyMove((Move)move);
+                }
+
+                int compareUEdges = Coordinates.GetUEdgeCoord(compareCube);
+                int compareDEdges = Coordinates.GetDEdgeCoord(compareCube);
+
+                int udEdgePermutation = Coordinates.CombineUAndDEdgePermutation(uEdges, dEdges);
+
+                int pruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equatorPermutation;
+                int minMoves = TableController.Phase2PruningTable[pruningIndex];
+                int maxMoves = Math.Min(_shortestSolution.Value, MaxAllowedPhase2Length);
+
+                for (int length = minMoves; length < maxMoves; length++)
+                    SearchPhase2(cp, equatorPermutation, udEdgePermutation, 0, length, phase1Length: depth);
+
+                return;
             }
 
             //increase depth
             for (int move = 0; move < NumMoves; move++)
             {
-                //TODO understand
-                /*if (remainingMoves < NoPhase2MovesThreshold && TwoPhaseConstants.Phase2Moves.Contains(move))
-                    continue;*/
-
-                //TEST
-                //TEST improvement
-                //improve performance by preventing two consecutive moves on the same face
-                if (depth >= 1)
+                //prevent two consecutive moves on the same face or two
+                //consecutive moves on the same axis in the wrong order
+                if (depth > 0)
                 {
-                    int faceOfMove = move / 3;
-                    int faceOfLastMove = solution[depth - 1] / 3;
-
-                    bool moveIsOnTheSameFaceAsLastMove = faceOfMove == faceOfLastMove;
-
-                    if (moveIsOnTheSameFaceAsLastMove)
+                    int relation = move / 3 - _currentPhase1Solution[depth - 1] / 3;
+                    if (relation == SameFace || relation == SameAxisInWrongOrder)
                         continue;
-
-                    //improve performance by preventing three consecutive moves on the same axis
-                    if (depth >= 2)
-                    {
-                        int axisOfMove = faceOfMove % 3;
-                        int axisOfLastMove = faceOfLastMove % 3;
-                        int axisOfMoveBeforeLastMove = (solution[depth - 2] / 3) % 3;
-
-                        bool moveIsOnTheSameAxisAsLastTwoMoves = (axisOfMove == axisOfLastMove) && (axisOfMove == axisOfMoveBeforeLastMove);
-
-                        if (moveIsOnTheSameAxisAsLastTwoMoves)
-                            continue;
-                    }
                 }
-
-                solution[depth] = move;
 
                 int newEo = TableController.EoMoveTable[eo, move];
                 int newCo = TableController.CoMoveTable[co, move];
-                int newEquator = TableController.EquatorDistributionMoveTable[equator, move];
-                if (SearchPhase1(newEo, newCo, newEquator, depth + 1, solution, prune))
-                    return true;
-            }
+                int newEquator = TableController.EquatorMoveTable[equator, move];
 
-            //if no solution is found
-            return false;
+                //prune
+                int pruningCoord = Coordinates.GetPhase1PruningIndex(newCo, newEo, newEquator / Coordinates.NumEquatorPermutationCoords);
+                if (TableController.Phase1PruningTable[pruningCoord] > remainingMoves - 1)
+                    continue;
+
+                _currentPhase1Solution[depth] = move;
+                SearchPhase1(newEo, newCo, newEquator, depth + 1, remainingMoves - 1);
+            }
         }
 
-        //TODO finish
-        /// <summary>
-        /// Find a near optimal phase 2 solution for a <see cref="CubieCube"/>.
-        /// </summary>
-        /// <param name="cube">The cube to solve.</param>
-        /// <param name="prune">Whether to use pruning.</param>
-        /// <returns>
-        /// A near optimal phase 2 solution for <paramref name="cube"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="cube"/> is null.
-        /// </exception>
-        public static Alg FindPhase2Solution(CubieCube cube, bool prune = true)
+        private void SearchPhase2(int cp, int equatorPermutation, int udEdgePermutation, int depth, int remainingMoves, int phase1Length)
         {
-            if (cube is null)
-                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if (_isTerminated.Value)
+                return;
 
-            int cp = Coordinates.GetCpCoord(cube);
-            int equatorPermutation = Coordinates.GetEquatorPermutationCoord(cube);
-            int udEdgePermutation = Coordinates.GetUdEdgePermutationCoord(cube);
-
-            return FindPhase2Solution(cp, equatorPermutation, udEdgePermutation, prune);
-        }
-
-        //TODO finish
-        //TODO improve documentation
-        /// <summary>
-        /// Find a near optimal phase 2 solution for a cube using cp, ... and ... coordinates
-        /// </summary>
-        /// <param name="cp">The corner permutation coordinate of the cube to solve.</param>
-        /// <param name="prune">Whether to use pruning.</param>
-        /// <returns>
-        /// A near optimal phase 2 solution for the given coordinates.
-        /// </returns>
-        public static Alg FindPhase2Solution(int cp, int equatorPermutation, int udEdgePermutation, bool prune = true)
-        {
-            TableController.InitializePhase2MoveTables();
-            if (prune)
-                TableController.InitializePhase2PruningTable();
-
-            int depth = 0;
-            if (prune)
+            if (remainingMoves == 0 && udEdgePermutation == 0) //check if solved
             {
-                int index = TwoPhaseConstants.NumEquatorPermutations * cp + equatorPermutation;
-                depth = TableController.Phase2PruningTable[index];
-            }
+                Alg solution = Alg.FromEnumerable(_currentPhase1Solution.Take(phase1Length).Concat(_currentPhase2Solution.Take(depth)).Cast<Move>());
 
-            for (; depth <= TwoPhaseConstants.MaxDepthPhase2; depth++)
-            {
-                int[] solutionArray = new int[depth];
-                if (SearchPhase2(cp, equatorPermutation, udEdgePermutation, 0, solutionArray, prune))
-                    return Alg.FromEnumerable(solutionArray.Cast<Move>());
-            }
-            return null;
-        }
+                /*if (_solveInverse)
+                    solution = solution.Inverse();*/
+                for (int i = 0; i < _rotation; i++)
+                    solution = solution.Rotate(Rotation.y3).Rotate(Rotation.x3);
 
-        //TODO finish
-        private static bool SearchPhase2(int cp, int equatorPermutation, int udEdgePermutation, int depth, int[] solution, bool prune = true)
-        {
-            int length = solution.Length;
-            int remainingMoves = length - depth;
+                lock (_lockObject)
+                    _solutions.Add(solution);
 
-            //return solution if solved
-            if (remainingMoves == 0)
-            {
-                if (cp == 0 && udEdgePermutation == 0)
-                    return true;
-                else
-                    return false;
-            }
+                _shortestSolution.Value = solution.Length;
 
-            if (prune)
-            {
-                int pruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equatorPermutation;
-                if (TableController.Phase2PruningTable[pruningIndex] > remainingMoves)
-                    return false;
+                if (solution.Length <= _returnLength)
+                    _isTerminated.Value = true;
+
+                return;
             }
 
             //increase depth
             foreach (int move in TwoPhaseConstants.Phase2Moves)
             {
-                //TODO understand
-                /*if (remainingMoves < NoPhase2MovesThreshold && TwoPhaseConstants.Phase2Moves.Contains(move))
-                    continue;*/
-
-                //TEST
-                //TEST improvement
-                //improve performance by preventing two consecutive moves on the same face
-                if (depth >= 1)
+                //prevent two consecutive moves on the same face or two
+                //consecutive moves on the same axis in the wrong order
+                if (depth == 0)
                 {
-                    int faceOfMove = move / 3;
-                    int faceOfLastMove = solution[depth - 1] / 3;
-
-                    bool moveIsOnTheSameFaceAsLastMove = faceOfMove == faceOfLastMove;
-
-                    if (moveIsOnTheSameFaceAsLastMove)
-                        continue;
-
-                    //improve performance by preventing three consecutive moves on the same axis
-                    if (depth >= 2)
+                    if (phase1Length > 0)
                     {
-                        int axisOfMove = faceOfMove % 3;
-                        int axisOfLastMove = faceOfLastMove % 3;
-                        int axisOfMoveBeforeLastMove = (solution[depth - 2] / 3) % 3;
-
-                        bool moveIsOnTheSameAxisAsLastTwoMoves = (axisOfMove == axisOfLastMove) && (axisOfMove == axisOfMoveBeforeLastMove);
-
-                        if (moveIsOnTheSameAxisAsLastTwoMoves)
+                        int relation = move / 3 - _currentPhase1Solution[phase1Length - 1] / 3;
+                        if (relation == SameFace || relation == SameAxisInWrongOrder)
                             continue;
                     }
                 }
-
-                solution[depth] = move;
+                else
+                {
+                    int relation = move / 3 - _currentPhase2Solution[depth - 1] / 3;
+                    if (relation == SameFace || relation == SameAxisInWrongOrder)
+                        continue;
+                }
 
                 int newCp = TableController.CpMoveTable[cp, move];
                 int newEquatorPermutation = TableController.EquatorPermutationMoveTable[equatorPermutation, move];
                 int newUdEdgePermutation = TableController.UdEdgePermutationMoveTable[udEdgePermutation, move];
-                if (SearchPhase2(newCp, newEquatorPermutation, newUdEdgePermutation, depth + 1, solution))
-                    return true;
+
+                //prune
+                int pruningIndex = TwoPhaseConstants.NumEquatorPermutations * newCp + newEquatorPermutation;
+                if (TableController.Phase2PruningTable[pruningIndex] > remainingMoves - 1)
+                    continue;
+
+                _currentPhase2Solution[depth] = move;
+                SearchPhase2(newCp, newEquatorPermutation, newUdEdgePermutation, depth + 1, remainingMoves - 1, phase1Length);
             }
-
-            //if no solution is found
-            return false;
-        }
-
-        /// <summary>
-        /// Find a solution for a cube.
-        /// </summary>
-        /// <param name="cube">The cube to solve.</param>
-        /// <returns>A solution to the given cube.</returns>
-        public static Alg FindSolution(CubieCube cube)
-        {
-            if (cube is null)
-                throw new ArgumentNullException(nameof(cube) + " is null.");
-
-            Alg phase1Solution = FindPhase1Solution(cube);
-
-            CubieCube phase1SolvedCube = cube.Clone();
-            phase1SolvedCube.ApplyAlg(phase1Solution);
-
-            Alg phase2Solution = FindPhase2Solution(phase1SolvedCube);
-
-            return phase1Solution + phase2Solution;
         }
     }
 }

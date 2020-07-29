@@ -5,8 +5,9 @@ namespace Cubing
     /// <summary>
     /// Contains a function for calculating the binomial coefficient.
     /// </summary>
-    public static class CubingMath
+    public static class Utils
     {
+        //IMPR doc
         //TODO understand
         /// <summary>
         /// Calculates the binomial coefficient (n choose k). Return 0 if

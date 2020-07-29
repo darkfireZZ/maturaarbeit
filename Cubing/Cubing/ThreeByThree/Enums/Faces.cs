@@ -16,8 +16,7 @@ namespace Cubing.ThreeByThree
             ["F"] = Face.F,
             ["L"] = Face.L,
             ["D"] = Face.D,
-            ["B"] = Face.B
-        };
+            ["B"] = Face.B };
 
         private static readonly Face[] _oppositeFaceArray =
             new Face[] { Face.L, Face.D, Face.B, Face.R, Face.U, Face.F };

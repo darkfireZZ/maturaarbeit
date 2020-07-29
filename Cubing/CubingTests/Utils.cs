@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CubingTests
 {
     [TestClass]
-    public class CubingMathTest
+    public class Utils
     {
         [TestMethod]
         public void BinomialCoefficientTest()
@@ -30,7 +30,7 @@ namespace CubingTests
 
             for (int n = 0; n < maxN; n++)
                 for (int k = 0; k < maxK; k++)
-                    Assert.AreEqual(altBC(n, k), CubingMath.BinomialCoefficient(n, k));
+                    Assert.AreEqual(altBC(n, k), Cubing.Utils.BinomialCoefficient(n, k));
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// <summary>
         /// The directory where the tables are saved.
         /// </summary>
-        public static string Directory { get; set; } = @"C:\ProgramData\nbCubeLib";
+        public static string Directory { get; set; } = @"C:\ProgramData\nbCubeData";
 
         /// <summary>
         /// The edge orientation move table.
@@ -29,6 +29,18 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// The equator permutation move table.
         /// </summary>
         public static sbyte[,] EquatorPermutationMoveTable { get; set; } = null;
+        /// <summary>
+        /// The equator move table.
+        /// </summary>
+        public static short[,] EquatorMoveTable { get; set; } = null;
+        /// <summary>
+        /// The U-edges move table.
+        /// </summary>
+        public static short[,] UEdgesMoveTable { get; set; } = null;
+        /// <summary>
+        /// The D-edges move table.
+        /// </summary>
+        public static short[,] DEdgesMoveTable { get; set; } = null;
         /// <summary>
         /// The corner permutation move table.
         /// </summary>
@@ -97,6 +109,42 @@ namespace Cubing.ThreeByThree.TwoPhase
         }
 
         /// <summary>
+        /// Initialize the equator move table.
+        /// </summary>
+        public static void InitializeEquatorMoveTable()
+        {
+            if (EquatorMoveTable is null)
+            {
+                Console.WriteLine("Initializing equator move table");
+                EquatorMoveTable = MoveTables.CreateEquatorMoveTable();
+            }
+        }
+
+        /// <summary>
+        /// Initialize the U-edges move table.
+        /// </summary>
+        public static void InitializeUEdgesMoveTable()
+        {
+            if (UEdgesMoveTable is null)
+            {
+                Console.WriteLine("Initializing U-edges move table");
+                UEdgesMoveTable = MoveTables.CreateUEdgesMoveTable();
+            }
+        }
+
+        /// <summary>
+        /// Initialize the D-edges move table.
+        /// </summary>
+        public static void InitializeDEdgesMoveTable()
+        {
+            if (DEdgesMoveTable is null)
+            {
+                Console.WriteLine("Initializing D-edges move table");
+                DEdgesMoveTable = MoveTables.CreateDEdgesMoveTable();
+            }
+        }
+
+        /// <summary>
         /// Initialize the corner permutation move table.
         /// </summary>
         public static void InitializeCpMoveTable()
@@ -128,6 +176,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             InitializeCoMoveTable();
             InitializeEoMoveTable();
             InitializeEquatorDistributionMoveTable();
+            InitializeEquatorMoveTable();
         }
 
         /// <summary>
@@ -137,6 +186,10 @@ namespace Cubing.ThreeByThree.TwoPhase
         {
             InitializeCpMoveTable();
             InitializeUdEdgePermutationMoveTable();
+            InitializeEquatorMoveTable();
+            InitializeEquatorPermutationMoveTable();
+            InitializeUEdgesMoveTable();
+            InitializeDEdgesMoveTable();
         }
 
         //TODO handle exceptions

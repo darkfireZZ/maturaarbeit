@@ -29,7 +29,7 @@ namespace CubingTests
             int eo = Coordinates.GetEoCoord(cube);
             int equator = Coordinates.GetEquatorDistributionCoord(cube);
 
-            int pruningIndex = Coordinates.GetPruningIndex(co, eo, equator);
+            int pruningIndex = Coordinates.GetPhase1PruningIndex(co, eo, equator);
 
             int pruningValue = TableController.Phase1PruningTable[pruningIndex];
 
@@ -74,6 +74,9 @@ namespace CubingTests
         {
             TableController.InitializePhase2PruningTable();
 
+            //The phase 2 pruning table doesn't store the exact number of
+            //moves needed to solve the case, the number stored is a minimum
+            //number of moves needed
             Assert.IsTrue(TableController.Phase2PruningTable.Max() <= 18);
         }
     }

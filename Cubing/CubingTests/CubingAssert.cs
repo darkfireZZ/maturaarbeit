@@ -16,7 +16,7 @@ namespace CubingTests
             IEnumerator<(Edge edge, int index)> enumerator1 = expected.EP.Select((edge, index) => (edge, index)).GetEnumerator();
             IEnumerator<(Edge edge, int index)> enumerator2 = actual.EP.Select((edge, index) => (edge, index)).GetEnumerator();
 
-            for (int equatorEdge = 0; equatorEdge < TwoPhaseConstants.NumEquatorEdges; equatorEdge++)
+            for (int equatorEdge = 0; equatorEdge < Constants.NumEquatorEdges; equatorEdge++)
             {
                 while (enumerator1.MoveNext() && enumerator1.Current.edge < Edge.FR);
                 while (enumerator2.MoveNext() && enumerator2.Current.edge < Edge.FR);
@@ -31,7 +31,7 @@ namespace CubingTests
         public static void HasFourEquatorEdges(CubieCube cube)
         {
             int count = cube.EP.Count(edge => edge >= Edge.FR);
-            if (count != TwoPhaseConstants.NumEquatorEdges)
+            if (count != Constants.NumEquatorEdges)
                 throw new AssertFailedException("Cube has " + count + " equator edges instead of 4.");
         }
     }

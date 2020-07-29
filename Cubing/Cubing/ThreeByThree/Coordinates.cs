@@ -38,6 +38,57 @@ namespace Cubing.ThreeByThree
         public const int NumEquatorCoords = NumEquatorDistributionCoords * NumEquatorPermutationCoords;
 
         /// <summary>
+        /// The number of different U-edge distribution coordinates during phase 1.
+        /// </summary>
+        public const int NumUEdgeDistributionCoordsPhase1 = 495; // (12 choose 4)
+
+
+        /// <summary>
+        /// The numboer of different U-edge distribution coordinates during phase 2.
+        /// </summary>
+        public const int NumUEdgeDistributionCoordsPhase2 = 70; // (8 choose 4)
+
+        /// <summary>
+        /// The number of different U-edge permutation coordinates.
+        /// </summary>
+        public const int NumUEdgePermutationCoords = 24; // 4!
+
+        /// <summary>
+        /// The number of different U-edge coordinates during phase 1.
+        /// </summary>
+        public const int NumUEdgeCoordsPhase1 = NumUEdgeDistributionCoordsPhase1 * NumUEdgePermutationCoords;
+
+        /// <summary>
+        /// The number of different U-edge coordinates during phase 2.
+        /// </summary>
+        public const int NumUEdgeCoordsPhase2 = NumUEdgeDistributionCoordsPhase2 * NumUEdgePermutationCoords;
+
+        /// <summary>
+        /// The number of different D-edge distribution coordinates during phase 1.
+        /// </summary>
+        public const int NumDEdgeDistributionCoordsPhase1 = 495; // (12 choose 4)
+
+        /// <summary>
+        /// The number of different D-edge distribution coordinates during phase 2.
+        /// </summary>
+        public const int NumDEdgeDistributionCoordsPhase2 = 70; // (8 choose 4)
+
+        /// <summary>
+        /// The number of different D-edge permutation coordinates.
+        /// </summary>
+        public const int NumDEdgePermutationCoords = 24; // 4!
+
+        /// <summary>
+        /// The number of different D-edge coordinates during phase 1.
+        /// </summary>
+        public const int NumDEdgeCoordsPhase1 = NumDEdgeDistributionCoordsPhase1 * NumDEdgePermutationCoords;
+
+        /// <summary>
+        /// The number of different D-edge coordinates during phase 2.
+        /// </summary>
+        public const int NumDEdgeCoordsPhase2 = NumDEdgeDistributionCoordsPhase2 * NumDEdgePermutationCoords;
+
+        /// <summary>
         /// The number of different eo-equtor coordinates.
         /// </summary>
         public const int NumEoEquatorCoords = 1013759; // NumEOCoords * NumEquatorCoords - 1
@@ -171,7 +222,6 @@ namespace Cubing.ThreeByThree
             cube.EO[NumEdges - 1] = sum % 2;
         }
 
-        //TODO understand
         /// <summary>
         /// Map the distribution of the equator edges of a
         /// <see cref="CubieCube"/> to an integer (ignoring the
@@ -191,13 +241,12 @@ namespace Cubing.ThreeByThree
             if (cube is null)
                 throw new ArgumentNullException(nameof(cube) + " is null.");
 
-            //The following works because int the CubieCube representation
-            //the equator edges are the last 4. This is also why it is
-            //iterating backwards.
+            //The following works because in the CubieCube representation
+            //the equator edges are the last 4.
             int coord = 0, numEquator = 0;
             for (int i = NumEdges - 1; i >= 0; i--)
                 if ((int)cube.EP[i] >= 8)
-                    coord += CubingMath.BinomialCoefficient(NumEdges - 1 - i, ++numEquator);
+                    coord += Utils.BinomialCoefficient(NumEdges - 1 - i, ++numEquator);
             return coord;
         }
 
@@ -226,24 +275,20 @@ namespace Cubing.ThreeByThree
             if ((uint)coordinate >= NumEquatorDistributionCoords)
                 throw new ArgumentOutOfRangeException(nameof(coordinate) + " must be between 0 and " + NumEquatorDistributionCoords + ": " + coordinate);
 
-            /*
-            //The following works because in the CubieCube representation
-            //the equator edges are the last 4.
             int numEquator = 0, numNonEquator = 0;
             for (int edge = 0; edge < NumEdges; edge++)
             {
-                int bc = CubingMath.BinomialCoefficient(11 - edge, 4 - numEquator);
-                if (coord >= bc)
+                int bc = Utils.BinomialCoefficient(11 - edge, NumEquatorEdges - numEquator);
+                if (coordinate >= bc) //current edge is an equator edge
                 {
-                    coord -= bc;
+                    coordinate -= bc;
                     cube.EP[edge] = (Edge)(11 - numEquator++);
                 }
                 else
                     cube.EP[edge] = (Edge)(numNonEquator++);
             }
-            */
 
-            Edge[] equatorEdges = { Edge.FR, Edge.FL, Edge.BL, Edge.BR };
+            /*Edge[] equatorEdges = { Edge.FR, Edge.FL, Edge.BL, Edge.BR };
             Edge[] nonEquatorEdges = { Edge.UR, Edge.UF, Edge.UL, Edge.UB, Edge.DR, Edge.DF, Edge.DL, Edge.DB };
 
 
@@ -267,6 +312,7 @@ namespace Cubing.ThreeByThree
                     cube.EP[j] = nonEquatorEdges[x];
                     x++;
                 }
+            */
         }
 
         public static int GetEquatorPermutationCoord(CubieCube cube)
@@ -277,12 +323,12 @@ namespace Cubing.ThreeByThree
             int list = 0x0123;
             int coord = 0;
             int equatorEdgeIndex = 3;
-            for (int edgeIndex = NumEdges - 1; edgeIndex >= 0; edgeIndex--) //last corner is skipped because the information is redundant
+            for (int edgeIndex = NumEdges - 1; edgeIndex > 0; edgeIndex--) //last corner is skipped because the information is redundant
             {
                 int edge = (int)cube.EP[edgeIndex];
                 if (edge < (int)Edge.FR) //if edge is not an equator edge, skip it
                     continue;
-                int numberOfLeftEdgesWithHigherOrder = (list >> ((edge - TwoPhaseConstants.NumUdEdges) * 4)) & 0xF;
+                int numberOfLeftEdgesWithHigherOrder = (list >> ((edge - NumUdEdges) * 4)) & 0xF;
                 coord += factorial[equatorEdgeIndex] * numberOfLeftEdgesWithHigherOrder;
 
                 list -= 0x111 >> ((NumEdges - 1 - edge) * 4);
@@ -301,6 +347,7 @@ namespace Cubing.ThreeByThree
             if ((uint)coordinate >= NumEquatorPermutationCoords)
                 throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
 
+            //IMPR inefficient
             int list = 0x89AB;
             IEnumerator<(Edge edge, int index)> edgeEnumerator = cube.EP
                 .Select((edge, index) => (edge, index))
@@ -313,7 +360,7 @@ namespace Cubing.ThreeByThree
                 int edge = (list >> (numberOfLeftEdgesWithHigherOrder * 4)) & 0xF;
                 while (edgeEnumerator.MoveNext() && edgeEnumerator.Current.edge < Edge.FR) ; //find the next equator edge on the cube
                 cube.EP[edgeEnumerator.Current.index] = (Edge)edge;
-                list = ((list & (0xFFF0 << (numberOfLeftEdgesWithHigherOrder * 4))) >> 4) + (list & (0xFFFF >> ((TwoPhaseConstants.NumEquatorEdges - numberOfLeftEdgesWithHigherOrder) * 4)));
+                list = ((list & (0xFFF0 << (numberOfLeftEdgesWithHigherOrder * 4))) >> 4) + (list & (0xFFFF >> ((NumEquatorEdges - numberOfLeftEdgesWithHigherOrder) * 4)));
             }
             while (edgeEnumerator.MoveNext() && edgeEnumerator.Current.edge < Edge.FR) ; //find the last equator edge on the cube
             cube.EP[edgeEnumerator.Current.index] = (Edge)(list & 0xF);
@@ -336,6 +383,273 @@ namespace Cubing.ThreeByThree
 
             SetEquatorDistributionCoord(cube, coordinate / 24);
             SetEquatorPermutationCoord(cube, coordinate % 24);
+        }
+
+        public static int GetUEdgeDistributionCoord(CubieCube cube)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+
+            int coord = 0, numUEdges = 0;
+            for (int i = 0; i < NumEdges; i++)
+                if (cube.EP[i] <= Edge.UR)
+                    coord += Utils.BinomialCoefficient(i, ++numUEdges);
+            return coord;
+        }
+
+        public static void SetUEdgeDistributionCoord(CubieCube cube, int coordinate)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if ((uint)coordinate >= NumUEdgeDistributionCoordsPhase1)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " must be between 0 and " + NumEquatorDistributionCoords + ": " + coordinate);
+
+            int numUEdges = 0, numNonUEdges = 0;
+            for (int edge = NumEdges - 1; edge >= 0; edge--)
+            {
+                int bc = Utils.BinomialCoefficient(edge, NumUEdges - numUEdges);
+                if (coordinate >= bc) //current edge is an equator edge
+                {
+                    coordinate -= bc;
+                    cube.EP[edge] = (Edge)(NumUEdges - 1 - numUEdges++);
+                }
+                else
+                    cube.EP[edge] = (Edge)(NumEdges - 1 - numNonUEdges++);
+            }
+        }
+
+        public static int GetUEdgePermutationCoord(CubieCube cube)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+
+            int list = 0x0123;
+            int coord = 0;
+            int uEdgeIndex = 3;
+            for (int edgeIndex = NumEdges - 1; edgeIndex > 0; edgeIndex--) //last corner is skipped because the information is redundant
+            {
+                int edge = (int)cube.EP[edgeIndex];
+                if (edge > (int)Edge.UR) //if edge is not a U-layer edge, skip it
+                    continue;
+                int numberOfLeftEdgesWithHigherOrder = (list >> (edge * 4)) & 0xF;
+                coord += factorial[uEdgeIndex] * numberOfLeftEdgesWithHigherOrder;
+
+                list -= 0x111 >> ((NumUEdges - 1 - edge) * 4);
+                if (uEdgeIndex > 0)
+                    uEdgeIndex--;
+                else
+                    break;
+            }
+            return coord;
+        }
+
+        public static void SetUEdgePermutationCoord(CubieCube cube, int coordinate)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if ((uint)coordinate >= NumUEdgePermutationCoords)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
+
+            //IMPR inefficient
+            int list = 0x0123;
+            IEnumerator<(Edge edge, int index)> edgeEnumerator = cube.EP
+                .Select((edge, index) => (edge, index))
+                .Reverse()
+                .GetEnumerator();
+            for (int uEdgeIndex = 3; uEdgeIndex > 0; uEdgeIndex--)
+            {
+                int numberOfLeftEdgesWithHigherOrder = coordinate / factorial[uEdgeIndex];
+                coordinate %= factorial[uEdgeIndex];
+                int edge = (list >> (numberOfLeftEdgesWithHigherOrder * 4)) & 0xF;
+                while (edgeEnumerator.MoveNext() && edgeEnumerator.Current.edge > Edge.UR) ; //find the next U-layer edge on the cube
+                cube.EP[edgeEnumerator.Current.index] = (Edge)edge;
+                list = ((list & (0xFFF0 << (numberOfLeftEdgesWithHigherOrder * 4))) >> 4) + (list & (0xFFFF >> ((NumUEdges - numberOfLeftEdgesWithHigherOrder) * 4)));
+            }
+            while (edgeEnumerator.MoveNext() && edgeEnumerator.Current.edge > Edge.UR) ; //find the last U-layer edge on the cube
+            cube.EP[edgeEnumerator.Current.index] = (Edge)(list & 0xF);
+        }
+
+        public static int GetUEdgeCoord(CubieCube cube)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+
+            return GetUEdgeDistributionCoord(cube) * NumEquatorPermutationCoords + GetUEdgePermutationCoord(cube);
+        }
+
+        public static void SetUEdgeCoord(CubieCube cube, int coordinate)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if ((uint)coordinate >= NumUEdgeCoordsPhase1)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
+
+            SetUEdgeDistributionCoord(cube, coordinate / NumUEdgePermutationCoords);
+            SetUEdgePermutationCoord(cube, coordinate % NumUEdgePermutationCoords);
+        }
+
+        public static int GetDEdgeDistributionCoord(CubieCube cube)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+
+            int coord = 0, numUEdges = 0;
+            for (int i = 0; i < NumEdges; i++)
+                if (((int)cube.EP[i] >= (int)Edge.DF) && ((int)cube.EP[i] <= (int)Edge.DR))
+                    coord += Utils.BinomialCoefficient(i, ++numUEdges);
+            return coord;
+        }
+
+        public static void SetDEdgeDistributionCoord(CubieCube cube, int coordinate)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if ((uint)coordinate >= NumDEdgeDistributionCoordsPhase1)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
+
+            int numDEdges = 0, numNonDEdges = 0;
+            for (int edge = NumEdges - 1; edge >= 0; edge--)
+            {
+                int bc = Utils.BinomialCoefficient(edge, NumDEdges - numDEdges);
+                if (coordinate >= bc) //current edge is a D-layer edge
+                {
+                    coordinate -= bc;
+                    cube.EP[edge] = (Edge)(NumUdEdges - 1 - numDEdges++);
+                }
+                else
+                {
+                    if (numNonDEdges < 4)
+                        cube.EP[edge] = (Edge)(NumEdges - 1 - numNonDEdges++);
+                    else
+                        cube.EP[edge] = (Edge)(NumUEdges - 1 - numNonDEdges++);
+                }
+            }
+        }
+
+        public static int GetDEdgePermutationCoord(CubieCube cube)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+
+            int list = 0x0123;
+            int coord = 0;
+            int dEdgeIndex = 3;
+            for (int edgeIndex = NumEdges - 1; edgeIndex > 0; edgeIndex--) //last corner is skipped because the information is redundant
+            {
+                int edge = (int)cube.EP[edgeIndex];
+                if (edge < (int)Edge.DF || edge > (int)Edge.DR) //if edge is not a D-layer edge, skip it
+                    continue;
+                int numberOfLeftEdgesWithHigherOrder = (list >> ((edge - NumUEdges) * 4)) & 0xF;
+                coord += factorial[dEdgeIndex] * numberOfLeftEdgesWithHigherOrder;
+
+                list -= 0x111 >> ((NumUdEdges - 1 - edge) * 4);
+                if (dEdgeIndex > 0)
+                    dEdgeIndex--;
+                else
+                    break;
+            }
+            return coord;
+        }
+
+        public static void SetDEdgePermutationCoord(CubieCube cube, int coordinate)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if ((uint)coordinate >= NumDEdgePermutationCoords)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
+
+            //IMPR inefficient
+            int list = 0x4567;
+            IEnumerator<(Edge edge, int index)> edgeEnumerator = cube.EP
+                .Select((edge, index) => (edge, index))
+                .Reverse()
+                .GetEnumerator();
+            for (int dEdgeIndex = 3; dEdgeIndex > 0; dEdgeIndex--)
+            {
+                int numberOfLeftEdgesWithHigherOrder = coordinate / factorial[dEdgeIndex];
+                coordinate %= factorial[dEdgeIndex];
+                int edge = (list >> (numberOfLeftEdgesWithHigherOrder * 4)) & 0xF;
+                while (edgeEnumerator.MoveNext() && (edgeEnumerator.Current.edge < Edge.DF || edgeEnumerator.Current.edge > Edge.DR)) ; //find the next D-layer edge on the cube
+                cube.EP[edgeEnumerator.Current.index] = (Edge)edge;
+                list = ((list & (0xFFF0 << (numberOfLeftEdgesWithHigherOrder * 4))) >> 4) + (list & (0xFFFF >> ((NumDEdges - numberOfLeftEdgesWithHigherOrder) * 4)));
+            }
+            while (edgeEnumerator.MoveNext() && (edgeEnumerator.Current.edge < Edge.DF || edgeEnumerator.Current.edge > Edge.DR)) ; //find the last D-layer edge on the cube
+            cube.EP[edgeEnumerator.Current.index] = (Edge)(list & 0xF);
+        }
+
+        public static int GetDEdgeCoord(CubieCube cube)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+
+            return GetDEdgeDistributionCoord(cube) * NumDEdgePermutationCoords + GetDEdgePermutationCoord(cube);
+        }
+
+        public static void SetDEdgeCoord(CubieCube cube, int coordinate)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if ((uint)coordinate >= NumDEdgeCoordsPhase1)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
+
+            SetDEdgeDistributionCoord(cube, coordinate / 24);
+            SetDEdgePermutationCoord(cube, coordinate % 24);
+        }
+
+        public static int CombineUAndDEdgePermutation(int uEdgeCoordinate, int dEdgeCoordinate)
+        {
+            if ((uint)uEdgeCoordinate >= NumUEdgeCoordsPhase2)
+                throw new ArgumentOutOfRangeException(nameof(uEdgeCoordinate) + " is out of range: " + uEdgeCoordinate);
+            if ((uint)dEdgeCoordinate >= NumDEdgeCoordsPhase2)
+                throw new ArgumentOutOfRangeException(nameof(dEdgeCoordinate) + " is out of range: " + dEdgeCoordinate);
+
+            int uEdgeDistribution = uEdgeCoordinate / NumUEdgePermutationCoords;
+            int uEdgePermutation  = uEdgeCoordinate % NumUEdgePermutationCoords;
+            int dEdgePermutation  = dEdgeCoordinate % NumDEdgePermutationCoords;
+
+            int coord = 0;
+
+            int uEdgeList = 0x0123;
+            int dEdgeList = 0x4567;
+
+            int b = 0x01234567; //TODO rename
+
+            int numUEdges = 0, numDEdges = 0;
+            for (int edgeIndex = NumUdEdges - 1; edgeIndex >= 0; edgeIndex--)
+            {
+                int edge = -1;
+                int bc = Utils.BinomialCoefficient(edgeIndex, 4 - numUEdges);
+                if (uEdgeDistribution >= bc) //current edge is a U-layer edge
+                {
+                    uEdgeDistribution -= bc;
+
+                    int numberOfLeftUEdgesWithHigherOrder = uEdgePermutation / factorial[NumUEdges - 1 - numUEdges];
+                    uEdgePermutation %= factorial[NumUEdges - 1 - numUEdges];
+                    edge = (uEdgeList >> (numberOfLeftUEdgesWithHigherOrder * 4)) & 0xF;
+                    uEdgeList = ((uEdgeList & (0xFFF0 << (numberOfLeftUEdgesWithHigherOrder * 4))) >> 4) + (uEdgeList & (0xFFFF >> ((NumUEdges - numberOfLeftUEdgesWithHigherOrder) * 4)));
+                    numUEdges++;
+                }
+                else
+                {
+                    int numberOfLeftDEdgesWithHigherOrder = dEdgePermutation / factorial[NumDEdges - 1 - numDEdges];
+                    dEdgePermutation %= factorial[NumDEdges - 1 - numDEdges];
+                    edge = (dEdgeList >> (numberOfLeftDEdgesWithHigherOrder * 4)) & 0xF;
+                    dEdgeList = ((dEdgeList & (0xFFF0 << (numberOfLeftDEdgesWithHigherOrder * 4))) >> 4) + (dEdgeList & (0xFFFF >> ((NumDEdges - numberOfLeftDEdgesWithHigherOrder) * 4)));
+                    numDEdges++;
+                }
+
+                int numberOfLeftEdgesWithHigherOrder = (b >> edge * 4) & 0xF;
+                coord += factorial[edgeIndex] * numberOfLeftEdgesWithHigherOrder;
+
+                b -= 0x1111111 >> (NumUdEdges - 1 - edge) * 4;
+
+                if (uEdgeCoordinate == 10187)
+                {
+                    int i = 0;
+                }
+            }
+
+            return coord;
         }
 
         /// <summary>
@@ -476,13 +790,13 @@ namespace Cubing.ThreeByThree
             //https://github.com/thewca/tnoodle-lib/blob/master/scrambles/src/main/java/org/worldcubeassociation/tnoodle/puzzle/TwoByTwoSolver.java
             int b = 0x01234567;
             int coord = 0;
-            for (int edgeIndex = TwoPhaseConstants.NumUdEdges - 1; edgeIndex > 0; edgeIndex--) //last edge is skipped because the information is redundant
+            for (int edgeIndex = NumUdEdges - 1; edgeIndex > 0; edgeIndex--) //last edge is skipped because the information is redundant
             {
                 int edge = (int)cube.EP[edgeIndex];
                 int numberOfLeftEdgesWithHigherOrder = (b >> edge * 4) & 0xF;
                 coord += factorial[edgeIndex] * numberOfLeftEdgesWithHigherOrder;
 
-                b -= 0x1111111 >> (TwoPhaseConstants.NumUdEdges - 1 - edge) * 4;
+                b -= 0x1111111 >> (NumUdEdges - 1 - edge) * 4;
             }
 
             return coord;
@@ -498,12 +812,12 @@ namespace Cubing.ThreeByThree
             //inspired by the 2x2x2 scrambler of the WCA (as of 20.04.2020):
             //https://github.com/thewca/tnoodle-lib/blob/master/scrambles/src/main/java/org/worldcubeassociation/tnoodle/puzzle/TwoByTwoSolver.java
             int list = 0x01234567; //used as a faster alternative to a list of corners
-            for (int edgeIndex = TwoPhaseConstants.NumUdEdges - 1; edgeIndex > 0; edgeIndex--)
+            for (int edgeIndex = NumUdEdges - 1; edgeIndex > 0; edgeIndex--)
             {
                 int numberOfLeftEdgesWithHigherOrder = coordinate / factorial[edgeIndex];
                 int edge = (list >> numberOfLeftEdgesWithHigherOrder * 4) & 0xF;
 
-                list = (list & (0xFFFFFFF >> (TwoPhaseConstants.NumUdEdges - 1 - numberOfLeftEdgesWithHigherOrder) * 4)) + ((list & (0xFFFFFF0 << numberOfLeftEdgesWithHigherOrder * 4)) >> 4); //remove edge form list
+                list = (list & (0xFFFFFFF >> (NumUdEdges - 1 - numberOfLeftEdgesWithHigherOrder) * 4)) + ((list & (0xFFFFFF0 << numberOfLeftEdgesWithHigherOrder * 4)) >> 4); //remove edge form list
                 coordinate %= factorial[edgeIndex]; //remove corner from coordinate
 
                 cube.EP[edgeIndex] = (Edge)edge;
@@ -517,15 +831,25 @@ namespace Cubing.ThreeByThree
         /// Get the index into the pruning table given the corner orientation,
         /// edge orientation and equator coordinates.
         /// </summary>
+        /// <remarks>
+        /// There are no parameter checks in order to speed up the computation.
+        /// Therefore make sure that all the parameters are in range.
+        /// </remarks>
         /// <param name="co">The corner orientation coordinate.</param>
         /// <param name="eo">The edge orientation coodinate.</param>
-        /// <param name="equator">The equator coordinate.</param>
+        /// <param name="equatorDistribution">
+        /// The equator distribution coordinate.
+        /// </param>
         /// <returns>
         /// The index into the pruning table for the given parameters.
         /// </returns>
-        public static int GetPruningIndex(int co, int eo, int equator)
+        /// <exception cref="IndexOutOfRangeException">
+        /// May be thrown if any of the parameters is out of range, but does
+        /// not have to be.
+        /// </exception>
+        public static int GetPhase1PruningIndex(int co, int eo, int equatorDistribution)
         {
-            int eoEquator = equator * NumEoCoords + eo;
+            int eoEquator = equatorDistribution * NumEoCoords + eo;
             int reducedEoEquator = Phase1Tables.ReduceEoEquatorCoordinate[eoEquator];
             int reductionSymmetry = Phase1Tables.ReductionSymmetry[eoEquator];
             int rotatedCo = Phase1Tables.ConjugateCoCoordinate[co, reductionSymmetry];
@@ -535,3 +859,4 @@ namespace Cubing.ThreeByThree
         }
     }
 }
+ 

@@ -6,33 +6,50 @@
     public static class Constants
     {
         /// <summary>
-        /// The number of corner pieces of a 3x3x3.
+        /// The number of corner pieces.
         /// </summary>
-        public static int NumCorners = 8;
+        public const int NumCorners = 8;
         /// <summary>
-        /// The number of edge pieces of a 3x3x3.
+        /// The number of edge pieces.
         /// </summary>
-        public static int NumEdges = 12;
+        public const int NumEdges = 12;
         /// <summary>
-        /// The number of center pieces of a 3x3x3.
+        /// The number of center pieces
         /// </summary>
-        public static int NumCenters = 6;
+        public const int NumCenters = 6;
 
         /// <summary>
-        /// The number of faces of a 3x3x3.
+        /// The number of edge pieces in the U layer.
         /// </summary>
-        public static int NumFaces = 6;
+        public const int NumUEdges = 4;
         /// <summary>
-        /// The number of axes of a 3x3x3.
+        /// The number of edge pieces in the D layer.
         /// </summary>
-        public static int NumAxes = 3;
+        public const int NumDEdges = 4;
+        /// <summary>
+        /// The number of edge pieces in the equator layer.
+        /// </summary>
+        public const int NumEquatorEdges = 4;
+        /// <summary>
+        /// The number of edges in the U and D layers.
+        /// </summary>
+        public const int NumUdEdges = NumUEdges + NumDEdges;
+
+        /// <summary>
+        /// The number of faces.
+        /// </summary>
+        public const int NumFaces = 6;
+        /// <summary>
+        /// The number of axes.
+        /// </summary>
+        public const int NumAxes = 3;
         /// <summary>
         /// The number of different moves in half turn metric (HTM).
         /// </summary>
-        public static int NumMoves = 18;
+        public const int NumMoves = 18;
         /// <summary>
         /// The number of different rotations in half turn metric (HTM).
         /// </summary>
-        public static int NumRotations = 9;
+        public const int NumRotations = 9;
     }
 }

@@ -128,6 +128,38 @@ namespace Cubing.ThreeByThree.TwoPhase
             return equatorPermutationMoveTable;
         }
 
+
+        /// <summary>
+        /// Create a move table for the equator distribution and permutation of
+        /// a 3x3x3 cube.
+        /// </summary>
+        /// <returns>
+        /// A move table for the equator distribution and permutation of a
+        /// 3x3x3 cube.
+        /// </returns>
+        public static short[,] CreateEquatorMoveTable()
+        {
+            CubieCube cube = CubieCube.CreateSolved();
+            short[,] equatorMoveTable = new short[Coordinates.NumEquatorCoords, NumMoves];
+
+            for (int equator = 0; equator < Coordinates.NumEquatorCoords; equator++)
+                for (int move = 0; move < NumMoves; move++)
+                    equatorMoveTable[equator, move] = -1;
+
+            for (int equator = 0; equator < Coordinates.NumEquatorCoords; equator++)
+                for (int face = 0; face < NumFaces; face++)
+                {
+                    Coordinates.SetEquatorCoord(cube, equator);
+                    for (int qt = 0; qt < 3; qt++)
+                    {
+                        cube.MultiplyEdges(CubieCube.MovesArray[face * 3]);
+                        equatorMoveTable[equator, face * 3 + qt] = (short)Coordinates.GetEquatorCoord(cube);
+                    }
+                }
+
+            return equatorMoveTable;
+        }
+
         /// <summary>
         /// Create a move table for the corner permutation of a 3x3x3.
         /// </summary>
@@ -159,7 +191,56 @@ namespace Cubing.ThreeByThree.TwoPhase
             return cpMoveTable;
         }
 
-        //IMPR space efficiency
+        public static short[,] CreateUEdgesMoveTable()
+        {
+            CubieCube cube = CubieCube.CreateSolved();
+            short[,] uEdgeMoveTable = new short[Coordinates.NumUEdgeCoordsPhase1, NumMoves];
+
+            //invalidate table
+            for (int uEdges = 0; uEdges < Coordinates.NumUEdgeCoordsPhase1; uEdges++)
+                for (int move = 0; move < NumMoves; move++)
+                    uEdgeMoveTable[uEdges, move] = -1;
+
+            //populate table
+            for (int uEdges = 0; uEdges < Coordinates.NumUEdgeCoordsPhase1; uEdges++)
+                for (int face = 0; face < NumFaces; face++)
+                {
+                    Coordinates.SetUEdgeCoord(cube, uEdges);
+                    for (int qt = 0; qt < 3; qt++)
+                    {
+                        cube.MultiplyEdges(CubieCube.MovesArray[face * 3]);
+                        uEdgeMoveTable[uEdges, face * 3 + qt] = (short)Coordinates.GetUEdgeCoord(cube);
+                    }
+                }
+
+            return uEdgeMoveTable;
+        }
+        
+        public static short[,] CreateDEdgesMoveTable()
+        {
+            CubieCube cube = CubieCube.CreateSolved();
+            short[,] dEdgeMoveTable = new short[Coordinates.NumDEdgeCoordsPhase1, NumMoves];
+
+            //invalidate table
+            for (int dEdges = 0; dEdges < Coordinates.NumDEdgeCoordsPhase1; dEdges++)
+                for (int move = 0; move < NumMoves; move++)
+                    dEdgeMoveTable[dEdges, move] = -1;
+
+            //populate table
+            for (int dEdges = 0; dEdges < Coordinates.NumDEdgeCoordsPhase1; dEdges++)
+                for (int face = 0; face < NumFaces; face++)
+                {
+                    Coordinates.SetDEdgeCoord(cube, dEdges);
+                    for (int qt = 0; qt < 3; qt++)
+                    {
+                        cube.MultiplyEdges(CubieCube.MovesArray[face * 3]);
+                        dEdgeMoveTable[dEdges, face * 3 + qt] = (short)Coordinates.GetDEdgeCoord(cube);
+                    }
+                }
+
+            return dEdgeMoveTable;
+        }
+
         public static ushort[,] CreateUdEdgePermutationMoveTable()
         {
             CubieCube cube = CubieCube.CreateSolved();
@@ -174,6 +255,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             for (int udEdgePermutation = 0; udEdgePermutation < Coordinates.NumCpCoords; udEdgePermutation++)
                 for (int face = 0; face < NumFaces; face++)
                 {
+                    cube = CubieCube.CreateSolved();
                     Coordinates.SetUdEdgePermutationCoord(cube, udEdgePermutation);
                     for (int move = 0; move < 3; move++)
                     {

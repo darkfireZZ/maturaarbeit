@@ -189,6 +189,51 @@ namespace CubingTests
         }
 
         [TestMethod]
+        public void UEdgeCoordTest()
+        {
+            Random random = new Random(7777777);
+            int length = 50;
+            int repetitions = 50;
+
+            CubieCube expected;
+            CubieCube result;
+            int expectedCoord;
+            int resultCoord;
+
+            double[] phase2probabilities = {
+                0d, 1d, 0d, 1d, 1d, 1d, 0d, 1d, 0d,
+                0d, 1d, 0d, 1d, 1d, 1d, 0d, 1d, 0d };
+
+            //solved tests
+            Assert.AreEqual(0, Coordinates.GetUEdgeDistributionCoord(CubieCube.CreateSolved()));
+
+            //scrambled tests
+            for (int i = 0; i < repetitions; i++)
+            {
+                result = CubieCube.CreateSolved();
+                expected = CubieCube.FromAlg(Alg.FromRandomMoves(length, random));
+                expectedCoord = Coordinates.GetUEdgeCoord(expected);
+                Coordinates.SetUEdgeCoord(result, expectedCoord);
+                resultCoord = Coordinates.GetUEdgeCoord(result);
+
+                int expectedDistribution = expectedCoord / Coordinates.NumUEdgePermutationCoords;
+                int expectedPermutation = expectedCoord % Coordinates.NumUEdgePermutationCoords;
+                int resultDistribution = resultCoord / Coordinates.NumUEdgePermutationCoords;
+                int resultPermutation = resultCoord % Coordinates.NumUEdgePermutationCoords;
+
+                Assert.AreEqual(expectedDistribution, resultDistribution);
+                Assert.AreEqual(expectedPermutation, resultPermutation);
+            }
+
+            //exceptions
+            Assert.ThrowsException<ArgumentNullException>(() => Coordinates.GetUEdgeCoord(null));
+
+            Assert.ThrowsException<ArgumentNullException>(() => Coordinates.SetUEdgeCoord(null, 0));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Coordinates.SetUEdgeCoord(CubieCube.CreateSolved(), -1));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Coordinates.SetUEdgeCoord(CubieCube.CreateSolved(), Coordinates.NumUEdgeCoordsPhase1));
+        }
+
+        [TestMethod]
         public void CpCoordTest() //Tests GetCpCoord, SetCpCoord
         {
             Random random = new Random(7777777);
@@ -285,6 +330,31 @@ namespace CubingTests
             Assert.ThrowsException<ArgumentNullException>(() => Coordinates.SetUdEdgePermutationCoord(null, 0));
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => Coordinates.SetUdEdgePermutationCoord(CubieCube.CreateSolved(), -1));
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => Coordinates.SetUdEdgePermutationCoord(CubieCube.CreateSolved(), Coordinates.NumUdEdgePermutationCoords));
+        }
+
+        [TestMethod]
+        public void CombineUAndDEdgeCoordsTest()
+        {
+            Random random = new Random(7777777);
+            int length = 50;
+            int repetitions = 50;
+
+            double[] phase2probabilities = {
+                0d, 1d, 0d, 1d, 1d, 1d, 0d, 1d, 0d,
+                0d, 1d, 0d, 1d, 1d, 1d, 0d, 1d, 0d };
+
+            for (int repetition = 0; repetition < repetitions; repetition++)
+            {
+                Alg alg = Alg.FromRandomMoves(length, random, phase2probabilities);
+                CubieCube cube = CubieCube.FromAlg(alg);
+
+                int uEdgeCoord = Coordinates.GetUEdgeCoord(cube);
+                int dEdgeCoord = Coordinates.GetDEdgeCoord(cube);
+                int result = Coordinates.CombineUAndDEdgePermutation(uEdgeCoord, dEdgeCoord);
+                int expected = Coordinates.GetUdEdgePermutationCoord(cube);
+
+                Assert.AreEqual(expected, result);
+            }
         }
     }
 }

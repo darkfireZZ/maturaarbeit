@@ -45,16 +45,6 @@
         /// </summary>
         public const int NumEquatorPermutations = 24; // 4!
 
-        /// <summary>
-        /// The number of edges in the U and D layers of the cube.
-        /// </summary>
-        public const int NumUdEdges = 8;
-
-        /// <summary>
-        /// The number of edges in the equator layer of the cube.
-        /// </summary>
-        public const int NumEquatorEdges = 4;
-
         //TODO make readonlyarray
         /// <summary>
         /// The moves used in phase 2 in their integer representation.
