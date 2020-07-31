@@ -16,7 +16,10 @@ namespace Cubing.ThreeByThree.TwoPhase
     {
         private static object _lockObject = new object();
 
-        public const int MaxAllowedPhase2Length = 11;
+        /// <summary>
+        /// The maximum allowed length for a phase 2 solution.
+        /// </summary>
+        public static int MaxAllowedPhase2Length = 10;
 
         private class SyncedIntWrapper
         {
@@ -58,23 +61,22 @@ namespace Cubing.ThreeByThree.TwoPhase
 
         private const int SameFace = 0, SameAxisInWrongOrder = 3;
 
-        public static string alg = null;
-
         private SyncedBoolWrapper _isTerminated = null;
-        private SyncedIntWrapper _shortestSolution = null;
+        private SyncedIntWrapper _shortestSolutionLength = null;
+        private SyncedIntWrapper _shortestSolutionIndex = null;
         private List<Alg> _solutions = null;
         private Stopwatch _timePassed = null;
         private TimeSpan _timeout = default;
         private int _returnLength = 20;
         private int _requiredLength = 30;
 
-        private CubieCube _cubeToSolve = null;
+        private CubieCube _notRotatedCube = null;
 
         private int _cp = 0;
         private int _uEdges = 0;
         private int _dEdges = 0;
 
-        //private bool _solveInverse = false;
+        private bool _solveInverse = false;
         private int _rotation = 0;
 
         private int[] _currentPhase1Solution = null;
@@ -108,6 +110,12 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// value to 30 or higher will return the first solution found after
         /// timeout.
         /// </param>
+        /// <param name="solveDifferentOrientations">
+        /// Start 3 thread each solving a 120° offset of the cube.
+        /// </param>
+        /// <param name="solveInverse">
+        /// Start another thread for every orientation which solves the inverse.
+        /// </param>
         /// <returns>
         /// A solution for the specified cube or null if no solution is found
         /// for the given parameters.
@@ -120,7 +128,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// <paramref name="requiredLength"/> is positive but smaller than
         /// <paramref name="returnLength"/>.
         /// </exception>
-        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, int returnLength, int requiredLength = 30)
+        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, int returnLength, int requiredLength = 30, bool solveDifferentOrientations = true, bool solveInverse = true)
         {
             if (cubeToSolve is null)
                 throw new ArgumentNullException(nameof(cubeToSolve) + " is null.");
@@ -128,30 +136,38 @@ namespace Cubing.ThreeByThree.TwoPhase
                 throw new ArgumentOutOfRangeException(nameof(returnLength) + " cannot be negative: " + returnLength);
             if (requiredLength > 0 && requiredLength < returnLength)
                 throw new ArgumentOutOfRangeException(nameof(requiredLength) + " must either be negative or >= " + nameof(returnLength) + ": " + requiredLength + " (" + nameof(requiredLength) + ") < " + returnLength + " (" + nameof(returnLength) + ")");
-            
+
+            TableController.InitializePhase1Tables();
+            TableController.InitializePhase2Tables();
+
             Stopwatch timePassed = new Stopwatch();
             timePassed.Start();
 
             SyncedBoolWrapper isTerminated = new SyncedBoolWrapper() { Value = false };
-            SyncedIntWrapper shortestSolution = new SyncedIntWrapper() { Value = 30 };
+            SyncedIntWrapper shortestSolutionLength = new SyncedIntWrapper() { Value = 30 };
+            SyncedIntWrapper shortestSolutionIndex = new SyncedIntWrapper() { Value = -1 };
             List<Alg> solutions = new List<Alg>();
 
-            Thread[] solvers = new Thread[1];
+            int numThreads = (solveDifferentOrientations ? 3 : 1) * (solveInverse ? 2 : 1);
+            int increment = solveDifferentOrientations ? 1 : 2;
+            
+            Thread[] solvers = new Thread[numThreads];
 
-            for (int orientation = 0; orientation < 1; orientation++)
+            for (int orientation = 0; orientation < numThreads; orientation += increment)
             {
                 TwoPhaseSolver solver = new TwoPhaseSolver()
                 {
-                    _cubeToSolve = cubeToSolve,
+                    _notRotatedCube = cubeToSolve,
                     _timePassed = timePassed,
                     _timeout = timeout,
                     _returnLength = returnLength,
                     _requiredLength = requiredLength,
                     _isTerminated = isTerminated,
                     _solutions = solutions,
-                    _shortestSolution = shortestSolution,
-                    _rotation = orientation % 3/*,
-                    _solveInverse = orientation / 3 == 1*/
+                    _shortestSolutionLength = shortestSolutionLength,
+                    _shortestSolutionIndex = shortestSolutionIndex,
+                    _rotation = orientation % 3,
+                    _solveInverse = orientation / 3 == 1
                 };
 
                 Thread solverThread = new Thread(new ThreadStart(solver.StartSearch));
@@ -164,46 +180,60 @@ namespace Cubing.ThreeByThree.TwoPhase
 
             timePassed.Stop();
 
-            return solutions.FindLast(alg => true);
+            if (solutions.Count > 0)
+                return solutions[shortestSolutionIndex.Value];
+            else
+                return null;
         }
 
         private TwoPhaseSolver() { }
 
         private void StartSearch()
         {
-            TableController.InitializePhase1Tables();
-            TableController.InitializePhase2Tables();
-
-            _currentPhase1Solution = new int[TwoPhaseConstants.MaxDepthPhase1];
-            _currentPhase2Solution = new int[MaxAllowedPhase2Length];
+            CubieCube rotatedCube = CubieCube.CreateSolved();
 
             for (int i = 0; i < _rotation; i++)
             {
-                _cubeToSolve.Rotate(Rotation.x1);
-                _cubeToSolve.Rotate(Rotation.y1);
+                rotatedCube.Rotate(Rotation.y3);
+                rotatedCube.Rotate(Rotation.x3);
             }
 
+            rotatedCube.Multiply(_notRotatedCube);
+
+            for (int i = 0; i < _rotation; i++)
+            {
+                rotatedCube.Rotate(Rotation.x1);
+                rotatedCube.Rotate(Rotation.y1);
+            }
+
+            if (_solveInverse)
+                rotatedCube.Inverse();
+
             //calculate coordinates
-            int co = Coordinates.GetCoCoord(_cubeToSolve);
-            int cp = Coordinates.GetCpCoord(_cubeToSolve);
-            int eo = Coordinates.GetEoCoord(_cubeToSolve);
-            int equator = Coordinates.GetEquatorCoord(_cubeToSolve);
-            int uEdges = Coordinates.GetUEdgeCoord(_cubeToSolve);
-            int dEdges = Coordinates.GetDEdgeCoord(_cubeToSolve);
+            int co = Coordinates.GetCoCoord(rotatedCube);
+            int cp = Coordinates.GetCpCoord(rotatedCube);
+            int eo = Coordinates.GetEoCoord(rotatedCube);
+            int equator = Coordinates.GetEquatorCoord(rotatedCube);
+            int uEdges = Coordinates.GetUEdgeCoord(rotatedCube);
+            int dEdges = Coordinates.GetDEdgeCoord(rotatedCube);
 
             //store coordinates used in phase 2
             _cp = cp;
             _uEdges = uEdges;
             _dEdges = dEdges;
 
-            //TODO change 20
             int pruningIndex = Coordinates.GetPhase1PruningIndex(co, eo, equator / Coordinates.NumEquatorPermutationCoords);
             int minPhase1Length = TableController.Phase1PruningTable[pruningIndex];
-            for (int phase1Length = minPhase1Length; phase1Length < 20; phase1Length++)
-                SearchPhase1(eo, co, equator, 0, phase1Length);
+            int maxPhase1Length = (_requiredLength > 0 && _requiredLength < GodsNumber) ? _requiredLength : GodsNumber;
+
+            _currentPhase1Solution = new int[maxPhase1Length];
+            _currentPhase2Solution = new int[MaxAllowedPhase2Length];
+
+            for (int phase1Length = minPhase1Length; phase1Length < maxPhase1Length; phase1Length++)
+                SearchPhase1(eo, co, equator, 0, phase1Length, minPhase1Length);
         }
 
-        private void SearchPhase1(int eo, int co, int equator, int depth, int remainingMoves)
+        private void SearchPhase1(int eo, int co, int equator, int depth, int remainingMoves, int previousPruningValue)
         {
             if (_isTerminated.Value)
                 return;
@@ -211,15 +241,13 @@ namespace Cubing.ThreeByThree.TwoPhase
             if (remainingMoves == 0) //check if solved
             {
                 lock (_lockObject) //manage timeout
-                    if (_timePassed.Elapsed > _timeout && (_requiredLength < 0 || (_solutions.Count > 0 && _shortestSolution.Value <= _requiredLength)))
+                    if (_timePassed.Elapsed > _timeout && (_requiredLength < 0 || (_solutions.Count > 0 && _shortestSolutionLength.Value <= _requiredLength)))
                         _isTerminated.Value = true;
 
                 int cp = _cp;
                 int uEdges = _uEdges;
                 int dEdges = _dEdges;
                 int equatorPermutation = equator;
-
-                CubieCube compareCube = _cubeToSolve.Clone();
 
                 for (int moveIndex = 0; moveIndex < depth; moveIndex++)
                 {
@@ -228,19 +256,15 @@ namespace Cubing.ThreeByThree.TwoPhase
                     cp = TableController.CpMoveTable[cp, move];
                     uEdges = TableController.UEdgesMoveTable[uEdges, move];
                     dEdges = TableController.DEdgesMoveTable[dEdges, move];
-                    compareCube.ApplyMove((Move)move);
                 }
-
-                int compareUEdges = Coordinates.GetUEdgeCoord(compareCube);
-                int compareDEdges = Coordinates.GetDEdgeCoord(compareCube);
 
                 int udEdgePermutation = Coordinates.CombineUAndDEdgePermutation(uEdges, dEdges);
 
                 int pruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equatorPermutation;
                 int minMoves = TableController.Phase2PruningTable[pruningIndex];
-                int maxMoves = Math.Min(_shortestSolution.Value, MaxAllowedPhase2Length);
+                int maxMoves = Math.Min(_shortestSolutionLength.Value - depth - 1, MaxAllowedPhase2Length);
 
-                for (int length = minMoves; length < maxMoves; length++)
+                for (int length = minMoves; length <= maxMoves; length++)
                     SearchPhase2(cp, equatorPermutation, udEdgePermutation, 0, length, phase1Length: depth);
 
                 return;
@@ -249,6 +273,14 @@ namespace Cubing.ThreeByThree.TwoPhase
             //increase depth
             for (int move = 0; move < NumMoves; move++)
             {
+                //If the cube is already in the subgroup H and there are less
+                //than 5 moves left it is possible to stay in the subgroup only
+                //if exclusivly phase 2 moves are used, which means that this
+                //solution can also be generated in phase 2 and is therefore
+                //skipped.
+                if (previousPruningValue == 0 && remainingMoves < 5 && !TwoPhaseConstants.Phase2Moves.Contains((Move)move))
+                    continue;
+
                 //prevent two consecutive moves on the same face or two
                 //consecutive moves on the same axis in the wrong order
                 if (depth > 0)
@@ -264,11 +296,12 @@ namespace Cubing.ThreeByThree.TwoPhase
 
                 //prune
                 int pruningCoord = Coordinates.GetPhase1PruningIndex(newCo, newEo, newEquator / Coordinates.NumEquatorPermutationCoords);
-                if (TableController.Phase1PruningTable[pruningCoord] > remainingMoves - 1)
+                int pruningValue = TableController.Phase1PruningTable[pruningCoord];
+                if (pruningValue > remainingMoves - 1)
                     continue;
 
                 _currentPhase1Solution[depth] = move;
-                SearchPhase1(newEo, newCo, newEquator, depth + 1, remainingMoves - 1);
+                SearchPhase1(newEo, newCo, newEquator, depth + 1, remainingMoves - 1, pruningValue);
             }
         }
 
@@ -281,15 +314,24 @@ namespace Cubing.ThreeByThree.TwoPhase
             {
                 Alg solution = Alg.FromEnumerable(_currentPhase1Solution.Take(phase1Length).Concat(_currentPhase2Solution.Take(depth)).Cast<Move>());
 
-                /*if (_solveInverse)
-                    solution = solution.Inverse();*/
                 for (int i = 0; i < _rotation; i++)
                     solution = solution.Rotate(Rotation.y3).Rotate(Rotation.x3);
 
-                lock (_lockObject)
-                    _solutions.Add(solution);
+                if (_solveInverse)
+                {
+                    solution = solution.Inverse();
+                }
 
-                _shortestSolution.Value = solution.Length;
+                lock (_lockObject)
+                {
+                    if (solution.Length < _shortestSolutionLength.Value)
+                    {
+                        _shortestSolutionIndex.Value = _solutions.Count;
+                        _shortestSolutionLength.Value = solution.Length;
+                    }
+
+                    _solutions.Add(solution);
+                }
 
                 if (solution.Length <= _returnLength)
                     _isTerminated.Value = true;

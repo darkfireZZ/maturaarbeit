@@ -533,6 +533,37 @@ namespace Cubing.ThreeByThree
         public void Mirror(Axis axis)
             => this.Multiply(MirrorsArray[(int)axis]);
 
+        //TODO test mirror compat
+        /// <summary>
+        /// Reverse the cube.
+        /// </summary>
+        public void Inverse()
+        {
+            Edge[] newEp = new Edge[NumEdges];
+            for (int edge = 0; edge < NumEdges; edge++)
+                newEp[(int)this.EP[edge]] = (Edge)edge;
+
+            int[] newEo = new int[NumEdges];
+            for (int edge = 0; edge < NumEdges; edge++)
+                newEo[edge] = this.EO[(int)newEp[edge]];
+
+            Corner[] newCp = new Corner[NumEdges];
+            for (int corner = 0; corner < NumCorners; corner++)
+                newCp[(int)this.CP[corner]] = (Corner)corner;
+
+            int[] newCo = new int[NumCorners];
+            for (int corner = 0; corner < NumCorners; corner++)
+            {
+                int co = this.CO[(int)newCp[corner]];
+                newCo[corner] = (co == 0 ? 0 : 3 - co);
+            }
+
+            this.EP = newEp;
+            this.EO = newEo;
+            this.CP = newCp;
+            this.CO = newCo;
+        }
+
         /// <summary>
         /// Apply an alg to the cube.
         /// </summary>

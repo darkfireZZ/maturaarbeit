@@ -257,5 +257,24 @@ namespace CubingTests
             Assert.ThrowsException<NotImplementedException>(()
                 => CubieCube.CreateSolved().GetHashCode());
         }
+
+        [TestMethod]
+        public void Inverse()
+        {
+            CubieCube expected = CubieCube.CreateSolved();
+            Random random = new Random(7777777);
+            int length = 50;
+            int repetitions = 50;
+
+            for (int repetition = 0; repetition < repetitions; repetition++)
+            {
+                Alg alg = Alg.FromRandomMoves(length, random);
+                CubieCube result = CubieCube.FromAlg(alg);
+                result.Inverse();
+                result.ApplyAlg(alg);
+
+                Assert.AreEqual(expected, result);
+            }
+        }
     }
 }

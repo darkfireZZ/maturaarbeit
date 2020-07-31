@@ -9,8 +9,8 @@ namespace Cubing.ThreeByThree
 {
     //TODO test if array needs to be readonly
     /// <summary>
-    /// An immutable class for retrieving information about algs and for
-    /// manipulating algs.
+    /// An immutable class for manipulating and retrieving information about
+    /// algs.
     /// </summary>
     #pragma warning disable CS0659 // Typ überschreibt Object.Equals(object o), überschreibt jedoch nicht Object.GetHashCode()
     #pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
@@ -151,7 +151,8 @@ namespace Cubing.ThreeByThree
         }
 
         /// <summary>
-        /// Get the inverse of an alg.
+        /// Get the inverse of an alg (reverse the sequence and change any move
+        /// on the face <c>fa</c> from <c>fa1</c> to <c>fa3</c> and vice versa).
         /// </summary>
         /// <param name="alg">The alg to get the inverse of.</param>
         /// <returns>

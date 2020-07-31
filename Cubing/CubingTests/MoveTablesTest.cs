@@ -2,6 +2,7 @@
 using Cubing.ThreeByThree.TwoPhase;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 
 namespace CubingTests
 {
@@ -91,7 +92,10 @@ namespace CubingTests
 
             for (int udEdgePermutation = 0; udEdgePermutation < Coordinates.NumUdEdgePermutationCoords; udEdgePermutation++)
                 for (int move = 0; move < Constants.NumMoves; move++)
-                    Assert.IsTrue(udEdgePermutationMoveTable[udEdgePermutation, move] < Coordinates.NumUdEdgePermutationCoords);
+                {
+                    if (TwoPhaseConstants.Phase2Moves.Contains((Move)move))
+                        Assert.IsTrue(udEdgePermutationMoveTable[udEdgePermutation, move] < Coordinates.NumUdEdgePermutationCoords);
+                }
         }
 
         [TestMethod]

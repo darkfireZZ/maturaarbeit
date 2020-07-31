@@ -51,5 +51,10 @@
         /// The number of different rotations in half turn metric (HTM).
         /// </summary>
         public const int NumRotations = 9;
+
+        /// <summary>
+        /// The maximum number of moves required to solve the cube.
+        /// </summary>
+        public const int GodsNumber = 20;
     }
 }
