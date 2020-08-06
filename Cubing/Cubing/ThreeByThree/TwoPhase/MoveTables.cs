@@ -11,6 +11,32 @@ namespace Cubing.ThreeByThree.TwoPhase
     public static class MoveTables
     {
         /// <summary>
+        /// <c><see cref="Phase1IndexToPhase2Index"/>[m]</c>, where <c>m</c> is
+        /// the index of a phase 1 move, contains the index of the same move
+        /// used in phase 2. If the move is not used in phase 2, the value
+        /// stored is <c>-1</c>.
+        /// </summary>
+        public static int[] Phase1IndexToPhase2Index = new int[] {
+            -1, 0, -1, // R, R2, R'
+             1, 2,  3, // U, U2, U'
+            -1, 4, -1, // F, F2, F'
+            -1, 5, -1, // L, L2, L'
+             6, 7,  8, // D, D2, D'
+            -1, 9, -1  // B, B2, B'
+        };
+
+        /// <summary>
+        /// <c><see cref="Phase2IndexToPhase1Index"/>[m]</c>, where <c>m</c> is
+        /// the index of a phase 2 move, contains the index of the same move
+        /// used in phase 1.
+        /// </summary>
+        public static int[] Phase2IndexToPhase1Index = new int[]
+        {
+             1,  3,  4,  5,  7, // R2, U, U2, U', F2
+            10, 12, 13, 14, 16  // L2, D, D2, D', B2
+        };
+
+        /// <summary>
         /// Create a move table for the corner orientation of a 3x3x3.
         /// </summary>
         /// <returns>
@@ -105,7 +131,6 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// </returns>
         public static sbyte[,] CreateEquatorPermutationMoveTable()
         {
-            CubieCube cube = CubieCube.CreateSolved();
             sbyte[,] equatorPermutationMoveTable = new sbyte[Coordinates.NumEquatorPermutationCoords, NumMoves];
 
             for (int equatorPermutation = 0; equatorPermutation < Coordinates.NumEquatorPermutationCoords; equatorPermutation++)
@@ -115,7 +140,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             for (int equatorPermutation = 0; equatorPermutation < Coordinates.NumEquatorPermutationCoords; equatorPermutation++)
                 for (int face = 0; face < NumFaces; face++)
                 {
-                    cube = CubieCube.CreateSolved();
+                    CubieCube cube = CubieCube.CreateSolved();
                     Coordinates.SetEquatorPermutationCoord(cube, equatorPermutation);
                     for (int qt = 0; qt < 3; qt++)
                     {
@@ -243,25 +268,24 @@ namespace Cubing.ThreeByThree.TwoPhase
 
         public static ushort[,] CreateUdEdgePermutationMoveTable()
         {
-            CubieCube cube = CubieCube.CreateSolved();
-            ushort[,] udEdgePermutationMoveTable = new ushort[Coordinates.NumUdEdgePermutationCoords, NumMoves];
+            ushort[,] udEdgePermutationMoveTable = new ushort[Coordinates.NumUdEdgePermutationCoords, TwoPhaseConstants.NumMovesPhase2];
 
             //invalidate table
             for (int udEdgePermutation = 0; udEdgePermutation < Coordinates.NumUdEdgePermutationCoords; udEdgePermutation++)
-                for (int move = 0; move < NumMoves; move++)
+                for (int move = 0; move < TwoPhaseConstants.NumMovesPhase2; move++)
                     udEdgePermutationMoveTable[udEdgePermutation, move] = ushort.MaxValue;
 
             //populate table
             for (int udEdgePermutation = 0; udEdgePermutation < Coordinates.NumCpCoords; udEdgePermutation++)
                 for (int face = 0; face < NumFaces; face++)
                 {
-                    cube = CubieCube.CreateSolved();
+                    CubieCube cube = CubieCube.CreateSolved();
                     Coordinates.SetUdEdgePermutationCoord(cube, udEdgePermutation);
                     for (int move = 0; move < 3; move++)
                     {
                         cube.MultiplyEdges(CubieCube.MovesArray[face * 3]);
                         if (TwoPhaseConstants.Phase2Moves.Contains((Move)(face * 3 + move)))
-                            udEdgePermutationMoveTable[udEdgePermutation, face * 3 + move] = (ushort)Coordinates.GetUdEdgePermutationCoord(cube);
+                            udEdgePermutationMoveTable[udEdgePermutation, Phase1IndexToPhase2Index[face * 3 + move]] = (ushort)Coordinates.GetUdEdgePermutationCoord(cube);
                     }
                 }
 

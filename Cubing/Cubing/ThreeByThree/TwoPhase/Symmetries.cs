@@ -44,8 +44,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         {
             CubieCube cube; //avoid name clashes
 
-            #region initialize PermutedCubes
-            //TODO test if it depends on axis
+            #region initialize SymmetryCubes
             SymmetryCubes = new CubieCube[NumSymmetries];
             cube = CubieCube.CreateSolved();
 
@@ -68,7 +67,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                 cube.Rotate(Rotation.x1);
                 cube.Rotate(Rotation.y1);
             }
-            #endregion initialize PermutedCubes
+            #endregion initialize SymmetryCubes
 
             #region initialize MultiplyIndex
             MultiplyIndex = new int[NumSymmetries, NumSymmetries];

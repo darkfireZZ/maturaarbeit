@@ -56,9 +56,14 @@ namespace Cubing.ThreeByThree.TwoPhase
         public static byte[] Phase1PruningTable { get; set; } = null;
 
         /// <summary>
-        /// The pruning table for phase 2.
+        /// The corner permutation and equator permutation pruning table for phase 2.
         /// </summary>
-        public static byte[] Phase2PruningTable { get; set; } = null;
+        public static byte[] Phase2CornerEquatorPruningTable { get; set; } = null;
+
+        /// <summary>
+        /// The corner permutation and U- and D-edge permutation pruning table for phase 2.
+        /// </summary>
+        public static byte[] Phase2CornerUdPruningTable { get; set; } = null;
 
         /// <summary>
         /// Initialize the corner orientation move table for phase 1.
@@ -219,28 +224,59 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// <summary>
         /// Initialize the pruning table for phase 2.
         /// </summary>
-        public static void InitializePhase2PruningTable()
+        public static void InitializePhase2CornerEquatorPruningTable()
         {
-            if (Phase2PruningTable is null)
+            if (Phase2CornerEquatorPruningTable is null)
             {
-                string file = Directory + @"\phase2pruning.table";
+                string file = Directory + @"\phase2CornerEquatorPruning.table";
                 if (File.Exists(file))
                 {
-                    Console.WriteLine("Loading phase 2 pruning table");
-                    Phase2PruningTable = File.ReadAllBytes(file);
+                    Console.WriteLine("Loading phase 2 corner permutation and equator permutation pruning table");
+                    Phase2CornerEquatorPruningTable = File.ReadAllBytes(file);
                 }
                 else
                 {
-                    Console.WriteLine("Initializing phase 2 pruning table");
-                    Phase2PruningTable = PruningTables.CreatePhase2Table();
-                    File.WriteAllBytes(file, Phase2PruningTable);
+                    Console.WriteLine("Initializing phase 2 corner permutation and equator permutation pruning table");
+                    Phase2CornerEquatorPruningTable = PruningTables.CreatePhase2CornerEquatorTable();
+                    File.WriteAllBytes(file, Phase2CornerEquatorPruningTable);
                 }
             }
         }
 
-        //IMPR documentation
+        //TODO handle exceptions
         /// <summary>
-        /// Initialize all frequently used tables for phase 1.
+        /// Initialize the corner permutation and equator permutation pruning table for phase 2.
+        /// </summary>
+        public static void InitializePhase2CornerUdPruningTable()
+        {
+            if (Phase2CornerUdPruningTable is null)
+            {
+                string file = Directory + @"\phase2CornerUDPruning.table";
+                if (File.Exists(file))
+                {
+                    Console.WriteLine("Loading phase 2 corner permutation and U- and D-edge permutation pruning table");
+                    Phase2CornerUdPruningTable = File.ReadAllBytes(file);
+                }
+                else
+                {
+                    Console.WriteLine("Initializing phase 2 corner permutation and U- and D-edge permutation pruning table");
+                    Phase2CornerUdPruningTable = PruningTables.CreatePhase2CornerUDTable();
+                    File.WriteAllBytes(file, Phase2CornerUdPruningTable);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Initialize the pruning tables for phase 2.
+        /// </summary>
+        public static void InitializePhase2PruningTables()
+        {
+            InitializePhase2CornerEquatorPruningTable();
+            InitializePhase2CornerUdPruningTable();
+        }
+
+        /// <summary>
+        /// Initialize the tables for phase 1.
         /// </summary>
         public static void InitializePhase1Tables()
         {
@@ -248,14 +284,13 @@ namespace Cubing.ThreeByThree.TwoPhase
             InitializePhase1PruningTable();
         }
 
-        //IMPR documentation
         /// <summary>
-        /// Initialize all frequently used tables for phase 2.
+        /// Initialize the tables for phase 2.
         /// </summary>
         public static void InitializePhase2Tables()
         {
             InitializePhase2MoveTables();
-            InitializePhase2PruningTable();
+            InitializePhase2PruningTables();
         }
     }
 }

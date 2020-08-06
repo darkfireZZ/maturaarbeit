@@ -14,21 +14,21 @@ namespace CubingTests
         [TestMethod]
         public void ConjugateCoCoordinateTest()
         {
-            Assert.AreEqual(2187, Phase1Tables.ConjugateCoCoordinate.GetLength(0));
-            Assert.AreEqual(16, Phase1Tables.ConjugateCoCoordinate.GetLength(1));
+            Assert.AreEqual(2187, SymmetryReduction.ConjugateCoCoordinate.GetLength(0));
+            Assert.AreEqual(16, SymmetryReduction.ConjugateCoCoordinate.GetLength(1));
 
             CubieCube coordCube = CubieCube.CreateSolved();
             for (int co = 0; co < NumCoCoords; co++)
             {
                 SetCoCoord(coordCube, co);
-                for (int sym = 0; sym < NumSymmetriesPhase1; sym++)
+                for (int sym = 0; sym < NumSymmetriesDh4; sym++)
                 {
                     CubieCube symCube = Symmetries.SymmetryCubes[sym].Clone();
                     symCube.Multiply(coordCube);
                     symCube.Multiply(Symmetries.SymmetryCubes[Symmetries.InverseIndex[sym]]);
 
                     CubieCube result = CubieCube.CreateSolved();
-                    SetCoCoord(result, Phase1Tables.ConjugateCoCoordinate[co, sym]);
+                    SetCoCoord(result, SymmetryReduction.ConjugateCoCoordinate[co, sym]);
 
                     CollectionAssert.AreEqual(symCube.CO, result.CO);
                 }
@@ -48,10 +48,10 @@ namespace CubingTests
                 {
                     SetEoCoord(cube, eo);
 
-                    int reducedCoord = Phase1Tables.ReduceEoEquatorCoordinate[equator * NumEoCoords + eo];
-                    int expandedCoord = Phase1Tables.ExpandEoEquatorCoordinate[reducedCoord];
+                    int reducedCoord = SymmetryReduction.ReduceEoEquatorCoordinate[equator * NumEoCoords + eo];
+                    int expandedCoord = SymmetryReduction.ExpandEoEquatorCoordinate[reducedCoord];
 
-                    int symmetryIndex = Phase1Tables.ReductionSymmetry[equator * NumEoCoords + eo];
+                    int symmetryIndex = SymmetryReduction.EoEquatorReductionSymmetry[equator * NumEoCoords + eo];
 
                     CubieCube symCube = Symmetries.SymmetryCubes[symmetryIndex].Clone();
                     symCube.Multiply(cube);
@@ -73,17 +73,17 @@ namespace CubingTests
             for (int i = 0; i < count; i++)
             {
                 CubieCube cube = CubieCube.FromAlg(Alg.FromRandomMoves(length, random));
-                for (int sym = 0; sym < NumSymmetriesPhase1; sym++)
+                for (int sym = 0; sym < NumSymmetriesDh4; sym++)
                 {
                     CubieCube symCube = Symmetries.SymmetryCubes[sym].Clone();
                     symCube.Multiply(cube);
                     symCube.Multiply(Symmetries.SymmetryCubes[Symmetries.InverseIndex[sym]]);
 
                     int cubeEoEquator = GetEoEquatorCoord(cube);
-                    int cubeReducedEoEquator = Phase1Tables.ReduceEoEquatorCoordinate[cubeEoEquator];
+                    int cubeReducedEoEquator = SymmetryReduction.ReduceEoEquatorCoordinate[cubeEoEquator];
 
                     int symCubeEoEquator = GetEoEquatorCoord(symCube);
-                    int symCubeReducedEoEqutor = Phase1Tables.ReduceEoEquatorCoordinate[symCubeEoEquator];
+                    int symCubeReducedEoEqutor = SymmetryReduction.ReduceEoEquatorCoordinate[symCubeEoEquator];
 
                     Assert.AreEqual(cubeReducedEoEquator, symCubeReducedEoEqutor);
                 }
@@ -100,14 +100,14 @@ namespace CubingTests
             {
                 found = false;
 
-                int reduced = Phase1Tables.ReduceEoEquatorCoordinate[expanded];
-                int expandedSym = Phase1Tables.ExpandEoEquatorCoordinate[reduced];
+                int reduced = SymmetryReduction.ReduceEoEquatorCoordinate[expanded];
+                int expandedSym = SymmetryReduction.ExpandEoEquatorCoordinate[reduced];
 
                 CubieCube expandedCube = CubieCube.CreateSolved();
                 SetEoCoord(expandedCube, expanded % 2048);
                 SetEquatorDistributionCoord(expandedCube, expanded / 2048);
 
-                for (int sym = 0; sym < NumSymmetriesPhase1; sym++)
+                for (int sym = 0; sym < NumSymmetriesDh4; sym++)
                 {
                     CubieCube symCube = Symmetries.SymmetryCubes[sym].Clone();
                     symCube.MultiplyEdges(expandedCube);

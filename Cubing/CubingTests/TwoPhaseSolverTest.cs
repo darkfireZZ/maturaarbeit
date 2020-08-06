@@ -51,7 +51,7 @@ namespace CubingTests
                 Alg scramble = Alg.FromRandomMoves(random.Next(20, 30), random);
                 CubieCube cube = CubieCube.FromAlg(scramble);
 
-                Alg solution = TwoPhaseSolver.FindSolution(cube, timeout, returnLength, requiredLength, solveDifferentOrientations: true, solveInverse: true);
+                Alg solution = TwoPhaseSolver.FindSolution(cube, timeout, returnLength, requiredLength);
                 Console.WriteLine("\nScramble: " + scramble + "\nSolution: " + solution + "\nLength: " + solution.Length);
 
                 Assert.IsTrue(solution.Length <= 20);

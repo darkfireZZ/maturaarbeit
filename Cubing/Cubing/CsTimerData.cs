@@ -219,7 +219,7 @@ namespace Cubing
 
             using (StreamWriter writer = new StreamWriter(new FileStream(path, FileMode.Create)))
             {
-                writer.Write("No.;Time;Comment;Scramble;Date;P.1"); //write headers
+                writer.Write("No.;Time;Comment;Scramble;Date;P.1"); //write header
                 foreach (var data in enumerable) //write all data
                     writer.Write("\n" + data.ToString(separator: ";"));
             }

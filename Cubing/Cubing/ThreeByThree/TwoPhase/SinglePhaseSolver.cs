@@ -4,6 +4,7 @@ using System;
 
 namespace Cubing.ThreeByThree.TwoPhase
 {
+    [System.Obsolete("Not optimized")]
     /// <summary>
     /// <see cref="SinglePhaseSolver"/> contains methods for solving each phase
     /// of the two-phase algorithm optimally. It uses the first solution found
@@ -29,9 +30,9 @@ namespace Cubing.ThreeByThree.TwoPhase
 
             int eo = Coordinates.GetEoCoord(cube);
             int co = Coordinates.GetCoCoord(cube);
-            int equator = Coordinates.GetEquatorDistributionCoord(cube);
+            int equatorDistribution = Coordinates.GetEquatorDistributionCoord(cube);
 
-            return FindPhase1Solution(eo, co, equator, prune);
+            return FindPhase1Solution(eo, co, equatorDistribution, prune);
         }
 
         /// <summary>
@@ -40,12 +41,12 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// </summary>
         /// <param name="co">The edge orientation coordinate of the cube to solve.</param>
         /// <param name="eo">The corner orientation coordinate of the cube to solve.</param>
-        /// <param name="equator">The equator coordinate of the cube to solve.</param>
+        /// <param name="equatorDistribution">The equator coordinate of the cube to solve.</param>
         /// <param name="prune">Whether to use pruning.</param>
         /// <returns>
         /// A near optimal phase 1 solution for the given coordinates.
         /// </returns>
-        public static Alg FindPhase1Solution(int eo, int co, int equator, bool prune = true)
+        public static Alg FindPhase1Solution(int eo, int co, int equatorDistribution, bool prune = true)
         {
             TableController.InitializePhase1MoveTables();
             if (prune)
@@ -54,11 +55,11 @@ namespace Cubing.ThreeByThree.TwoPhase
             if (prune)
             {
                 //find depth
-                int pruningCoord = Coordinates.GetPhase1PruningIndex(co, eo, equator);
+                int pruningCoord = PruningTables.GetPhase1PruningIndex(co, eo, equatorDistribution);
                 int requiredMoves = TableController.Phase1PruningTable[pruningCoord];
 
                 int[] solutionArray = new int[requiredMoves];
-                if (SearchPhase1(eo, co, equator, 0, solutionArray, prune)) //if a solution is found
+                if (SearchPhase1(eo, co, equatorDistribution, 0, solutionArray, prune)) //if a solution is found
                     return Alg.FromEnumerable(solutionArray.Cast<Move>());
                 else
                     return null;
@@ -68,7 +69,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                 for (int depth = 0; depth <= TwoPhaseConstants.MaxDepthPhase1; depth++)
                 {
                     int[] solutionArray = new int[depth];
-                    if (SearchPhase1(eo, co, equator, 0, solutionArray, prune))
+                    if (SearchPhase1(eo, co, equatorDistribution, 0, solutionArray, prune))
                         return Alg.FromEnumerable(solutionArray.Cast<Move>());
                 }
                 return null;
@@ -92,7 +93,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             //prune
             if (prune)
             {
-                int pruningCoord = Coordinates.GetPhase1PruningIndex(co, eo, equator);
+                int pruningCoord = PruningTables.GetPhase1PruningIndex(co, eo, equator);
                 if (TableController.Phase1PruningTable[pruningCoord] > remainingMoves)
                     return false;
             }
@@ -177,13 +178,13 @@ namespace Cubing.ThreeByThree.TwoPhase
         {
             TableController.InitializePhase2MoveTables();
             if (prune)
-                TableController.InitializePhase2PruningTable();
+                TableController.InitializePhase2CornerEquatorPruningTable();
 
             int depth = 0;
             if (prune)
             {
                 int index = TwoPhaseConstants.NumEquatorPermutations * cp + equatorPermutation;
-                depth = TableController.Phase2PruningTable[index];
+                depth = TableController.Phase2CornerEquatorPruningTable[index];
             }
 
             for (; depth <= TwoPhaseConstants.MaxDepthPhase2; depth++)
@@ -212,7 +213,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             if (prune)
             {
                 int pruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equatorPermutation;
-                if (TableController.Phase2PruningTable[pruningIndex] > remainingMoves)
+                if (TableController.Phase2CornerEquatorPruningTable[pruningIndex] > remainingMoves)
                     return false;
             }
 
@@ -254,7 +255,7 @@ namespace Cubing.ThreeByThree.TwoPhase
 
                 int newCp = TableController.CpMoveTable[cp, move];
                 int newEquatorPermutation = TableController.EquatorPermutationMoveTable[equatorPermutation, move];
-                int newUdEdgePermutation = TableController.UdEdgePermutationMoveTable[udEdgePermutation, move];
+                int newUdEdgePermutation = TableController.UdEdgePermutationMoveTable[udEdgePermutation, MoveTables.Phase1IndexToPhase2Index[move]];
                 if (SearchPhase2(newCp, newEquatorPermutation, newUdEdgePermutation, depth + 1, solution))
                     return true;
             }

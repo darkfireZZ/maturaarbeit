@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+//TODO change namespace
 namespace Cubing.ThreeByThree
 {
     /// <summary>
@@ -824,38 +825,6 @@ namespace Cubing.ThreeByThree
             }
 
             cube.EP[0] = (Edge)list; //last corner is the only one remaining in the list
-        }
-
-        //TODO move
-        /// <summary>
-        /// Get the index into the pruning table given the corner orientation,
-        /// edge orientation and equator coordinates.
-        /// </summary>
-        /// <remarks>
-        /// There are no parameter checks in order to speed up the computation.
-        /// Therefore make sure that all the parameters are in range.
-        /// </remarks>
-        /// <param name="co">The corner orientation coordinate.</param>
-        /// <param name="eo">The edge orientation coodinate.</param>
-        /// <param name="equatorDistribution">
-        /// The equator distribution coordinate.
-        /// </param>
-        /// <returns>
-        /// The index into the pruning table for the given parameters.
-        /// </returns>
-        /// <exception cref="IndexOutOfRangeException">
-        /// May be thrown if any of the parameters is out of range, but does
-        /// not have to be.
-        /// </exception>
-        public static int GetPhase1PruningIndex(int co, int eo, int equatorDistribution)
-        {
-            int eoEquator = equatorDistribution * NumEoCoords + eo;
-            int reducedEoEquator = Phase1Tables.ReduceEoEquatorCoordinate[eoEquator];
-            int reductionSymmetry = Phase1Tables.ReductionSymmetry[eoEquator];
-            int rotatedCo = Phase1Tables.ConjugateCoCoordinate[co, reductionSymmetry];
-            int pruningCoordinate = reducedEoEquator * NumCoCoords + rotatedCo;
-
-            return pruningCoordinate;
         }
     }
 }

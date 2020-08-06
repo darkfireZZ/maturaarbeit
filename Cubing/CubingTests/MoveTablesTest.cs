@@ -171,7 +171,7 @@ namespace CubingTests
 
                 for (int moveIndex = 0; moveIndex < length; moveIndex++)
                 {
-                    resultUdEdgePermutation = TableController.UdEdgePermutationMoveTable[resultUdEdgePermutation, (int)randomMoves[moveIndex]];
+                    resultUdEdgePermutation = TableController.UdEdgePermutationMoveTable[resultUdEdgePermutation, MoveTables.Phase1IndexToPhase2Index[(int)randomMoves[moveIndex]]];
                     resultEquatorPermutation = TableController.EquatorPermutationMoveTable[resultEquatorPermutation, (int)randomMoves[moveIndex]];
 
                     cube.ApplyMove(randomMoves[moveIndex]);
