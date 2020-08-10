@@ -289,7 +289,7 @@ namespace CubingTests
             int[] expected = {
                 2, 0, 0, 0, 0, 0, 0, 1, 1,
                 0, 3, 0, 0, 0, 0, 1, 0, 0 };
-            int[] result = alg.GetNumberOfEachMove();
+            int[] result = alg.GetCountOfEachMove();
 
             CollectionAssert.AreEqual(expected, result);
         }

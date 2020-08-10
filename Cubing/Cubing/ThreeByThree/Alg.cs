@@ -495,7 +495,7 @@ namespace Cubing.ThreeByThree
         /// <returns>
         /// An array containing the count of each type of move in the alg.
         /// </returns>
-        public int[] GetNumberOfEachMove()
+        public int[] GetCountOfEachMove()
         {
             int[] numberOfEachMove = new int[NumMoves];
             foreach (int move in _moves) numberOfEachMove[move]++;

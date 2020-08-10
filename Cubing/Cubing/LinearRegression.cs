@@ -132,7 +132,7 @@ namespace Cubing
             if (features.GetLength(1) != theta.Length)
                 throw new ArgumentException(nameof(features) + " and " + nameof(theta) + " have a different number of features.");
 
-            return (1d / (2 * features.GetLength(0))) * LinearRegression.Predict(features, theta)
+            return (1d / (2 * features.GetLength(0))) * Predict(features, theta)
                 .Select((value, index) => (value - labels[index]) * (value - labels[index]))
                 .Sum();
         }
@@ -178,7 +178,7 @@ namespace Cubing
             if (features.GetLength(1) != theta.Length)
                 throw new ArgumentException(nameof(features) + " and " + nameof(theta) + " have a different number of features.");
 
-            return (1d / (2 * features.GetLength(0))) * LinearRegression.Predict(features, theta)
+            return (1d / (2 * features.GetLength(0))) * Predict(features, theta)
                 .Select((value, index) => Math.Abs((value - labels[index])))
                 .Sum();
         }
@@ -224,7 +224,7 @@ namespace Cubing
                 throw new ArgumentException(nameof(features) + " and " + nameof(theta) + " have a different number of features.");
 
             return theta
-                .Select((featureElement, featureIndex) => LinearRegression.Predict(features, theta)
+                .Select((featureElement, featureIndex) => Predict(features, theta)
                     .Select((predictionElement, predictionIndex) => (predictionElement - labels[predictionIndex]) * features[predictionIndex, featureIndex])
                     .Sum() / features.GetLength(0))
                 .ToArray();

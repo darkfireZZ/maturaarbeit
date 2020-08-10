@@ -6,8 +6,8 @@ using static Cubing.ThreeByThree.Constants;
 namespace Cubing.ThreeByThree.TwoPhase
 {
     /// <summary>
-    /// Provides utility functions for validating and manipulating arrays of
-    /// weights for the 18 HTM moves.
+    /// Provides utility functions for calculating, validating and manipulating
+    /// arrays of weights for the 18 HTM moves.
     /// </summary>
     public static class MoveWeightsUtils
     {
@@ -56,6 +56,31 @@ namespace Cubing.ThreeByThree.TwoPhase
             ValidateWeights(weights);
 
             return moves.Distinct().OrderBy(move => weights[(int)move]);
+        }
+
+        public static double[] CalculateWeights(IEnumerable<CsTimerData> data)
+        {
+            int numExamples = data.Count();
+            double[,] features = new double[numExamples, NumMoves + 1]; //18 moves + cube pickup time
+            double[] labels = new double[numExamples];
+
+            int exampleIndex = 0;
+            foreach (CsTimerData example in data)
+            {
+                if (example.Penalty == CubingPenalty.Okay)
+                {
+                    int[] countOfEachMove = Alg.FromString(example.Scramble).GetCountOfEachMove();
+                    for (int featureIndex = 0; featureIndex < NumMoves; featureIndex++)
+                        features[exampleIndex, featureIndex] = countOfEachMove[featureIndex];
+                    features[exampleIndex, NumMoves] = 1;
+                }
+
+                labels[exampleIndex] = example.Milliseconds;
+
+                exampleIndex++;
+            }
+
+            return LinearRegression.Learn(features, labels, learningRate: 0.05, numberOfIterations: 10000);
         }
     }
 
