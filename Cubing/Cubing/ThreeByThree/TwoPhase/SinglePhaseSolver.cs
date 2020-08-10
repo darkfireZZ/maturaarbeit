@@ -1,6 +1,6 @@
-﻿using static Cubing.ThreeByThree.Constants;
+﻿using System;
 using System.Linq;
-using System;
+using static Cubing.ThreeByThree.Constants;
 
 namespace Cubing.ThreeByThree.TwoPhase
 {

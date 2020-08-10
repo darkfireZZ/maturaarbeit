@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CubingTests
 {
     [TestClass]
-    public class Utils
+    public class UtilsTest
     {
         [TestMethod]
         public void BinomialCoefficientTest()

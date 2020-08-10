@@ -1,5 +1,5 @@
-﻿using static Cubing.ThreeByThree.Constants;
-using System.Linq;
+﻿using System.Linq;
+using static Cubing.ThreeByThree.Constants;
 
 namespace Cubing.ThreeByThree.TwoPhase
 {

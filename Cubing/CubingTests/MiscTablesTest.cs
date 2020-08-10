@@ -1,9 +1,9 @@
-﻿using static Cubing.ThreeByThree.Coordinates;
-using static Cubing.ThreeByThree.TwoPhase.TwoPhaseConstants;
-using Cubing.ThreeByThree;
+﻿using Cubing.ThreeByThree;
 using Cubing.ThreeByThree.TwoPhase;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using static Cubing.ThreeByThree.Coordinates;
+using static Cubing.ThreeByThree.TwoPhase.TwoPhaseConstants;
 
 namespace CubingTests
 {

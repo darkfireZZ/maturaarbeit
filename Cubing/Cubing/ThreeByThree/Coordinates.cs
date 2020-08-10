@@ -1,8 +1,7 @@
-﻿using static Cubing.ThreeByThree.Constants;
-using Cubing.ThreeByThree.TwoPhase;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Cubing.ThreeByThree.Constants;
 
 //TODO change namespace
 namespace Cubing.ThreeByThree

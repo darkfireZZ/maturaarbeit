@@ -1,9 +1,9 @@
-﻿using static Cubing.ThreeByThree.Constants;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using static Cubing.ThreeByThree.Constants;
 
 namespace Cubing.ThreeByThree.TwoPhase
 {

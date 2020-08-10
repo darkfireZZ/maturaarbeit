@@ -1,7 +1,7 @@
-﻿using static Cubing.ThreeByThree.Faces;
-using Cubing.ThreeByThree;
+﻿using Cubing.ThreeByThree;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using static Cubing.ThreeByThree.Faces;
 
 namespace CubingTests
 {

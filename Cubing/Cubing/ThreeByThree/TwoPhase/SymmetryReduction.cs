@@ -1,7 +1,6 @@
-﻿using static Cubing.ThreeByThree.Coordinates;
+﻿using System.Linq;
+using static Cubing.ThreeByThree.Coordinates;
 using static Cubing.ThreeByThree.TwoPhase.TwoPhaseConstants;
-using System;
-using System.Linq;
 
 //IMPR documentation
 namespace Cubing.ThreeByThree.TwoPhase

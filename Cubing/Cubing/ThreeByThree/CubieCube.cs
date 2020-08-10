@@ -1,10 +1,10 @@
-﻿using static Cubing.ThreeByThree.Constants;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using static Cubing.ThreeByThree.Constants;
 using static Cubing.ThreeByThree.Corner;
 using static Cubing.ThreeByThree.Edge;
 using static Cubing.ThreeByThree.Face;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Cubing.ThreeByThree
 {
