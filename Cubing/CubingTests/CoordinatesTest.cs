@@ -292,6 +292,57 @@ namespace CubingTests
         }
 
         [TestMethod]
+        public void EpCoordTest() //Tests GetCpCoord, SetCpCoord
+        {
+            Random random = new Random(7777777);
+            int length = 50;
+
+            //if applying GetEpCoord and SetEpCoord results in the same array as at the beginning
+            CubieCube expected = CubieCube.FromAlg(Alg.FromRandomMoves(length, random));
+            CubieCube result = CubieCube.CreateSolved();
+
+            int coord = Coordinates.GetEpCoord(expected);
+            Coordinates.SetEpCoord(result, coord);
+
+            CollectionAssert.AreEqual(expected.EP, result.EP);
+
+            //test applying R2 to a solved cube
+            CubieCube cube = CubieCube.CreateSolved();
+            cube.ApplyMove(Move.R2);
+
+            int expectedCoord = 123763104;
+            int resultCoord = Coordinates.GetEpCoord(cube);
+
+            Assert.AreEqual(expectedCoord, resultCoord);
+
+            expected = CubieCube.CreateSolved();
+            expected.ApplyMove(Move.R2);
+
+            result = CubieCube.CreateSolved();
+            Coordinates.SetEpCoord(result, expectedCoord);
+
+            CollectionAssert.AreEqual(expected.EP, result.EP);
+
+            //if solved permutation corresponds to the coordinate 0
+            expected = CubieCube.CreateSolved();
+            result = CubieCube.FromAlg(Alg.FromRandomMoves(length, random));
+            Coordinates.SetEpCoord(result, 0);
+
+            CollectionAssert.AreEqual(expected.EP, result.EP);
+
+            result = CubieCube.CreateSolved();
+
+            Assert.AreEqual(0, Coordinates.GetEpCoord(result));
+
+            //exceptions
+            Assert.ThrowsException<ArgumentNullException>(() => Coordinates.GetEpCoord(null));
+
+            Assert.ThrowsException<ArgumentNullException>(() => Coordinates.SetEpCoord(null, 0));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Coordinates.SetEpCoord(CubieCube.CreateSolved(), -1));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Coordinates.SetEpCoord(CubieCube.CreateSolved(), Coordinates.NumEpCoords));
+        }
+
+        [TestMethod]
         public void UdEdgePermutationCoordTest() //Tests GetUdEdgePermutationCoord, SetUdEdgePermutationCoord
         {
             Random random = new Random(7777777);

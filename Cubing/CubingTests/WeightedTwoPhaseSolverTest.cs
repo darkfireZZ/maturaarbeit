@@ -103,7 +103,8 @@ namespace CubingTests
             Console.WriteLine("\nScramble: " + scramble + "\nSolution: " + solution + "\nCost: " + cost + " Length: " + solution.Length);
         }
 
-        [DataTestMethod]
+        //TODO remove
+        /*[DataTestMethod]
         [DataRow(true)]
         public void RandomTest(bool writeToFile)
         {
@@ -184,6 +185,6 @@ namespace CubingTests
                         writer.WriteLine(totalTimes[iteration].maximumCost + ";" + totalTimes[iteration].milliseconds + ";");
                 }
             }
-        }
+        }*/
     }
 }

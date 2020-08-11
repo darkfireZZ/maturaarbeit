@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using static Cubing.ThreeByThree.Constants;
 
-//TODO change namespace
 namespace Cubing.ThreeByThree
 {
     /// <summary>
@@ -99,12 +98,17 @@ namespace Cubing.ThreeByThree
         public const int NumCpCoords = 40320; // 8!
 
         /// <summary>
+        /// The number of different edge permutation coordinates.
+        /// </summary>
+        public const int NumEpCoords = 479001600; //12!
+
+        /// <summary>
         /// The number of different U and D edge permutation coordinates.
         /// </summary>
         public const int NumUdEdgePermutationCoords = 40320; // 8!
 
         //used for faster calculations of permutation coordinates
-        private static readonly int[] factorial = { 1, 1, 2, 6, 24, 120, 720, 5040 }; //factorial[n] = n!
+        private static readonly int[] factorial = { 1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800}; //factorial[n] = n!
 
         /// <summary>
         /// Map the corner orientation state of a <see cref="CubieCube"/>
@@ -288,6 +292,7 @@ namespace Cubing.ThreeByThree
                     cube.EP[edge] = (Edge)(numNonEquator++);
             }
 
+            //TODO remove
             /*Edge[] equatorEdges = { Edge.FR, Edge.FL, Edge.BL, Edge.BR };
             Edge[] nonEquatorEdges = { Edge.UR, Edge.UF, Edge.UL, Edge.UB, Edge.DR, Edge.DF, Edge.DL, Edge.DB };
 
@@ -772,7 +777,7 @@ namespace Cubing.ThreeByThree
                 int numberOfLeftCornersWithHigherOrder = coordinate / factorial[cornerIndex];
                 int corner = (list >> numberOfLeftCornersWithHigherOrder * 4) & 0xF;
 
-                list = (list & (0xFFFFFFF >> (7 - numberOfLeftCornersWithHigherOrder) * 4)) + ((list & (0xFFFFFF0 << numberOfLeftCornersWithHigherOrder * 4)) >> 4); //remove corner form list
+                list = (list & (0xFFFFFFF >> (NumCorners - 1 - numberOfLeftCornersWithHigherOrder) * 4)) + ((list & (0xFFFFFF0 << numberOfLeftCornersWithHigherOrder * 4)) >> 4); //remove corner form list
                 coordinate %= factorial[cornerIndex]; //remove corner from coordinate
 
                 cube.CP[cornerIndex] = (Corner)corner;
@@ -780,7 +785,48 @@ namespace Cubing.ThreeByThree
 
             cube.CP[0] = (Corner)list; //last corner is the only one remaining in the list
         }
-        
+
+        public static int GetEpCoord(CubieCube cube)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+
+            long list = 0x0123456789AB;
+            int coord = 0;
+            for (int edgeIndex = NumEdges - 1; edgeIndex > 0; edgeIndex--) //last edge is skipped because the information is redundant
+            {
+                int edge = (int)cube.EP[edgeIndex];
+                int numberOfLeftEdgesWithHigherOrder = (int)((list >> edge * 4) & 0xF);
+                coord += factorial[edgeIndex] * numberOfLeftEdgesWithHigherOrder;
+
+                list -= 0x11111111111 >> ((NumEdges - 1 - edge) * 4);
+            }
+
+            return coord;
+        }
+
+        public static void SetEpCoord(CubieCube cube, int coordinate)
+        {
+            if (cube is null)
+                throw new ArgumentNullException(nameof(cube) + " is null.");
+            if ((uint)coordinate >= NumEpCoords)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
+
+            long list = 0x0123456789AB; //used as a faster alternative to a list of edges
+            for (int edgeIndex = NumEdges - 1; edgeIndex > 0; edgeIndex--)
+            {
+                int numberOfLeftEdgesWithHigherOrder = coordinate / factorial[edgeIndex];
+                int edge = (int)((list >> numberOfLeftEdgesWithHigherOrder * 4) & 0xF);
+
+                list = (list & (0xFFFFFFFFFFF >> (NumEdges - 1 - numberOfLeftEdgesWithHigherOrder) * 4)) + ((list & (0xFFFFFFFFFF0 << numberOfLeftEdgesWithHigherOrder * 4)) >> 4); //remove edge form list
+                coordinate %= factorial[edgeIndex]; //remove edge from coordinate
+
+                cube.EP[edgeIndex] = (Edge)edge;
+            }
+
+            cube.EP[0] = (Edge)list; //last edge is the only one remaining in the list
+        }
+
         public static int GetUdEdgePermutationCoord(CubieCube cube)
         {
             if (cube is null)
@@ -824,6 +870,61 @@ namespace Cubing.ThreeByThree
             }
 
             cube.EP[0] = (Edge)list; //last corner is the only one remaining in the list
+        }
+
+        /// <summary>
+        /// Calculate the parity of the corners using a corner permutation
+        /// coordinate. True means odd parity and false means even parity.
+        /// </summary>
+        /// <param name="coordinate">
+        /// The corner permutation coordinate to use.
+        /// </param>
+        /// <returns>
+        /// The parity of the corners for the given corner permutation
+        /// coordinate.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="coordinate"/> is out of range.
+        /// </exception>
+        public static bool CpCoordinateParity(int coordinate)
+        {
+            if ((uint)coordinate >= NumCpCoords)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
+
+            int sum = 0;
+            for (int corner = NumCorners - 1; corner > 0; corner--)
+            {
+                sum += coordinate / factorial[corner];
+                coordinate %= factorial[corner];
+            }
+            return sum % 2 == 1; //return true if parity is odd
+        }
+
+        /// <summary>
+        /// Calculate the parity of the edges using a edge permutation
+        /// coordinate. True means odd parity and false means even parity.
+        /// </summary>
+        /// <param name="coordinate">
+        /// The edge permutation coordinate to use.
+        /// </param>
+        /// <returns>
+        /// The parity of the edges for the given edge permutation coordinate.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="coordinate"/> is out of range.
+        /// </exception>
+        public static bool EpCoordinateParity(int coordinate)
+        {
+            if ((uint)coordinate >= NumEpCoords)
+                throw new ArgumentOutOfRangeException(nameof(coordinate) + " is out of range: " + coordinate);
+
+            int sum = 0;
+            for (int edge = NumEdges - 1; edge > 0; edge--)
+            {
+                sum += coordinate / factorial[edge];
+                coordinate %= factorial[edge];
+            }
+            return sum % 2 == 1; //return true if parity is odd
         }
     }
 }

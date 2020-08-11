@@ -58,6 +58,34 @@ namespace Cubing.ThreeByThree.TwoPhase
             return moves.Distinct().OrderBy(move => weights[(int)move]);
         }
 
+        public static double CalculateCost(IEnumerable<Move> alg, double[] weights)
+        {
+            if (alg is null)
+                throw new ArgumentNullException(nameof(alg) + " is null.");
+            ValidateWeights(weights);
+
+            double cost = 0d;
+            foreach (Move move in alg)
+                cost += weights[(int)move];
+
+            return cost;
+        }
+
+        /// <summary>
+        /// Calculate weights from a collection of <see cref="CsTimerData"/>.
+        /// The weight at any given index (except 18) of the returned array
+        /// represents the weight of the HTM move with the corresponding index.
+        /// The weight at the 18th index represents the time required to pick
+        /// up and drop the cube. This method will only work for a specific
+        /// range of time values and works best around times of ~200 to ~300
+        /// millseconds per move.
+        /// </summary>
+        /// <param name="data">
+        /// The data from which the weights are calculated from.
+        /// </param>
+        /// <returns>
+        /// Weights calculated from a collection of <see cref="CsTimerData"/>.
+        /// </returns>
         public static double[] CalculateWeights(IEnumerable<CsTimerData> data)
         {
             int numExamples = data.Count();

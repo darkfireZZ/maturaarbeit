@@ -91,6 +91,52 @@ namespace Cubing.ThreeByThree
             };
 
         /// <summary>
+        /// Create a random <see cref="CubieCube"/> the centers are always
+        /// solved and the cube is never mirrored.
+        /// </summary>
+        /// <param name="random">The random number generator to use.</param>
+        /// <returns>A new random <see cref="CubieCube"/></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="random"/> is null.
+        /// </exception>
+        public static CubieCube CreateRandom(Random random)
+        {
+            if (random is null)
+                throw new ArgumentNullException(nameof(random) + " is null.");
+
+            int co = random.Next(0, Coordinates.NumCoCoords);
+            int eo = random.Next(0, Coordinates.NumEoCoords);
+
+            //only cubes with even parity are solvable
+            int cp = random.Next(0, Coordinates.NumCpCoords);
+            int ep = random.Next(0, Coordinates.NumEpCoords);
+            bool oddParity = Coordinates.CpCoordinateParity(cp) != Coordinates.EpCoordinateParity(ep);
+            if (oddParity)
+            {
+                if ((cp & 0b1) == 1)
+                    cp -= 1;
+                else
+                    cp += 1;
+            }
+
+            CubieCube returnValue = new CubieCube()
+            {
+                CO = new int[NumCorners],
+                CP = new Corner[NumCorners],
+                EO = new int[NumEdges],
+                EP = new Edge[NumEdges],
+                Centers = (Face[])CubieCube.SolvedCenters.Clone()
+            };
+
+            Coordinates.SetCoCoord(returnValue, co);
+            Coordinates.SetCpCoord(returnValue, cp);
+            Coordinates.SetEoCoord(returnValue, eo);
+            Coordinates.SetEpCoord(returnValue, ep);
+
+            return returnValue;
+        }
+
+        /// <summary>
         /// Create a <see cref="CubieCube"/> with a specific state.
         /// </summary>
         /// <param name="cp">

@@ -9,6 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CubingVisual", "CubingVisua
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CubingTests", "CubingTests\CubingTests.csproj", "{EB87BF2E-B583-4C0E-A136-D71A1ECDD37E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{D3F64808-04D4-4F30-B90E-09FBA4AE05A2}"
+	ProjectSection(SolutionItems) = preProject
+		CalculateWeights.csx = CalculateWeights.csx
+		CompareSolvers.csx = CompareSolvers.csx
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

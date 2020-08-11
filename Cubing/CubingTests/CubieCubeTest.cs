@@ -1,4 +1,5 @@
 ﻿using Cubing.ThreeByThree;
+using Cubing.ThreeByThree.TwoPhase;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using static Cubing.ThreeByThree.Constants;
@@ -92,6 +93,27 @@ namespace CubingTests
                         CubieCube.SolvedCO, CubieCube.SolvedEP,
                         CubieCube.SolvedEO, new Face[NumFaces + 1]));
             #endregion test exceptions
+        }
+
+        [TestMethod]
+        public void CreateRandomTest()
+        {
+            Random random = new Random(7777777);
+            int numIterations = 50;
+
+            TimeSpan timeout = TimeSpan.FromSeconds(20);
+
+            for (int iteration = 0; iteration < numIterations; iteration++)
+            {
+                CubieCube cube = CubieCube.CreateRandom(random);
+                int cornerPermutation = Coordinates.GetCpCoord(cube);
+                int edgePermutation   = Coordinates.GetEpCoord(cube);
+                bool cornerParity = Coordinates.CpCoordinateParity(cornerPermutation);
+                bool edgeParity   = Coordinates.EpCoordinateParity(edgePermutation);
+                Assert.IsTrue(cornerParity == edgeParity);
+
+                Assert.IsNotNull(TwoPhaseSolver.FindSolution(cube, timeout, 30, -1));
+            }
         }
 
         [TestMethod]
