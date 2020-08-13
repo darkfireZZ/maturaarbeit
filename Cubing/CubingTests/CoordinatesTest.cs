@@ -154,14 +154,14 @@ namespace CubingTests
             result.ApplyAlg(Alg.FromString("F' R' B' D' L2"));
             Assert.AreEqual(0, Coordinates.GetEquatorPermutationCoord(result));
 
-            //test applying B1
+            //apply B1
             int expectedCoord = 17;
             CubieCube cube = CubieCube.CreateSolved();
             cube.ApplyMove(Move.B1);
             int resultCoord = Coordinates.GetEquatorPermutationCoord(cube);
             Assert.AreEqual(expectedCoord, resultCoord);
 
-            //test applying B2
+            //apply B2
             expectedCoord = 6;
             cube = CubieCube.CreateSolved();
             cube.ApplyMove(Move.B2);
@@ -248,7 +248,7 @@ namespace CubingTests
 
             CollectionAssert.AreEqual(expected.CP, result.CP);
 
-            //test applying R2 to a solved cube
+            //apply R2 to a solved cube
             CubieCube cube = CubieCube.CreateSolved();
             cube.ApplyMove(Move.R2);
 
@@ -306,7 +306,7 @@ namespace CubingTests
 
             CollectionAssert.AreEqual(expected.EP, result.EP);
 
-            //test applying R2 to a solved cube
+            //apply R2 to a solved cube
             CubieCube cube = CubieCube.CreateSolved();
             cube.ApplyMove(Move.R2);
 

@@ -260,7 +260,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                 else
                 {
                     Console.WriteLine("Initializing phase 2 corner permutation and U- and D-edge permutation pruning table");
-                    Phase2CornerUdPruningTable = PruningTables.CreatePhase2CornerUDTable();
+                    Phase2CornerUdPruningTable = PruningTables.CreatePhase2CornerUdTable();
                     File.WriteAllBytes(file, Phase2CornerUdPruningTable);
                 }
             }

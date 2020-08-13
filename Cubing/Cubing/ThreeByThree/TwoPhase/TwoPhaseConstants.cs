@@ -20,11 +20,11 @@
         public const int NumReducedEoEquatorCoordinates = 64430;
 
         /// <summary>
-        /// The number of different symmetry reduced corner permutation coordinates.
+        /// The number of different symmetry reduced corner permutation
+        /// coordinates.
         /// </summary>
         public const int NumReducedCornerPermutationCoordinates = 2768;
 
-        //IMPR
         /// <summary>
         /// The number of symmetries in the subgroup Dh4.
         /// </summary>
@@ -36,14 +36,22 @@
         public const int PruningTableSizePhase1 = NumReducedEoEquatorCoordinates * Coordinates.NumCoCoords;
 
         /// <summary>
-        /// The number of entries in the corner permutation and equator permutation pruning table for phase 2.
+        /// The number of entries in the corner permutation and equator
+        /// permutation pruning table for phase 2.
         /// </summary>
         public const int CornerEquatorPruningTableSizePhase2 = Coordinates.NumCpCoords * Coordinates.NumEquatorPermutationCoords;
 
         /// <summary>
-        /// The number of entries in the corner permutation and U- and D-Edge permutation pruning table for phase 2.
+        /// The number of entries in the corner permutation and U- and D-Edge
+        /// permutation pruning table for phase 2.
         /// </summary>
         public const int CornerUdPruningTableSizePhase2 = NumReducedCornerPermutationCoordinates * Coordinates.NumUdEdgePermutationCoords;
+
+        /// <summary>
+        /// The number of entries in the U- and D-edge permutation and equator
+        /// edge permutation pruning table for phase 2.
+        /// </summary>
+        public const int UdEquatorPruningTableSizePhase2 = Coordinates.NumUdEdgePermutationCoords * Coordinates.NumEquatorPermutationCoords;
 
         /// <summary>
         /// The number of different possible permutations of the equator edges.

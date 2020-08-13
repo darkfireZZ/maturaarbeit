@@ -108,7 +108,8 @@ namespace Cubing.ThreeByThree
         public const int NumUdEdgePermutationCoords = 40320; // 8!
 
         //used for faster calculations of permutation coordinates
-        private static readonly int[] factorial = { 1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800}; //factorial[n] = n!
+        private static readonly int[] factorial =
+            { 1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800 }; //factorial[n] = n!
 
         /// <summary>
         /// Map the corner orientation state of a <see cref="CubieCube"/>
@@ -622,7 +623,7 @@ namespace Cubing.ThreeByThree
             int numUEdges = 0, numDEdges = 0;
             for (int edgeIndex = NumUdEdges - 1; edgeIndex >= 0; edgeIndex--)
             {
-                int edge = -1;
+                int edge;
                 int bc = Utils.BinomialCoefficient(edgeIndex, 4 - numUEdges);
                 if (uEdgeDistribution >= bc) //current edge is a U-layer edge
                 {
@@ -647,11 +648,6 @@ namespace Cubing.ThreeByThree
                 coord += factorial[edgeIndex] * numberOfLeftEdgesWithHigherOrder;
 
                 b -= 0x1111111 >> (NumUdEdges - 1 - edge) * 4;
-
-                if (uEdgeCoordinate == 10187)
-                {
-                    int i = 0;
-                }
             }
 
             return coord;

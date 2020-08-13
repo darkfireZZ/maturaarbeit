@@ -7,7 +7,6 @@ namespace Cubing
 {
     //MAYBE not throw FormatExcpetion in some cases
     //TEST (more tests)
-    //MAYBE represent time as Timespan
     //TODO add time splits functionality
     /// <summary>
     /// Gives functionality to read, edit and write data of a CSV file

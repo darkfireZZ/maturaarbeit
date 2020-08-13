@@ -52,7 +52,7 @@ TimeSpan endTimeout = TimeSpan.FromMilliseconds(endTimeoutMillis);
 SolverTester solverTester = new SolverTester(cubesToSolve, initialTimeout, endTimeout, numIterations);
 TimeSpan[] timeouts = solverTester.GetTimeouts();
 
-double[] weightedPruningTable = WeightedPruningTables.CreateWeightedPhase2Table(weights);
+double[] weightedPruningTable = WeightedPruningTables.CreateWeightedPhase2CornerEquatorTable(weights);
 
 Func<CubieCube, TimeSpan, Alg> regularTwoPhaseSolver = (cubeToSolve, timeout) => TwoPhaseSolver.FindSolution(cubeToSolve, timeout, 0, -1);
 Func<CubieCube, TimeSpan, Alg> weightedTwoPhaseSolver = (cubeToSolve, timeout) => WeightedTwoPhaseSolver.FindSolution(cubeToSolve, timeout, 0d, -1d, weights, weightedPruningTable);

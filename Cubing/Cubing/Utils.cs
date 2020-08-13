@@ -8,19 +8,23 @@ namespace Cubing
     public static class Utils
     {
         //IMPR doc
-        //TODO understand
         /// <summary>
-        /// Calculates the binomial coefficient (n choose k). Return 0 if
+        /// Calculate the binomial coefficient (<paramref name="n"/> choose
+        /// <paramref name="k"/>). Return 0 if
+        /// <c><paramref name="k"/> &lt; 0</c> or if
         /// <c><paramref name="k"/> &lt; 0</c> or if
         /// <c><paramref name="k"/> &gt; <paramref name="n"/></c>.
         /// </summary>
         /// <param name="n">The number of possibilities.</param>
         /// <param name="k">The number of items to choose.</param>
-        /// <returns>The binomial coefficient (n choose k).</returns>
+        /// <returns>
+        /// The binomial coefficient (<paramref name="n"/> choose
+        /// <paramref name="k"/>).
+        /// </returns>
         public static int BinomialCoefficient(int n, int k) {
             if (k < 0 || k > n)
                 return 0;
-            k = Math.Min(k, n - k);
+            k = Math.Min(k, n - k); //symmetry
             int c = 1;
             for (int i = 0; i < k; i++)
                 c = c * (n - i) / (i + 1);

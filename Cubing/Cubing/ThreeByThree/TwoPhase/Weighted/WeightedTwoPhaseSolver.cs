@@ -221,7 +221,7 @@ namespace Cubing.ThreeByThree.TwoPhase
 
                 int cornerEquatorPruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equator;
                 double weightedCornerEquatorPruningValue = _weightedPhase2PruningTable[cornerEquatorPruningIndex];
-                if (weightedCornerEquatorPruningValue + phase1Cost > _bestSolutionCost.Value) //TODO better comment //double inaccuracies don't matter
+                if (weightedCornerEquatorPruningValue + phase1Cost > _bestSolutionCost.Value)
                     return;
                 int cornerEquatorPruningValue = TableController.Phase2CornerEquatorPruningTable[cornerEquatorPruningIndex];
                 if (cornerEquatorPruningValue > MaxPhase2Length)

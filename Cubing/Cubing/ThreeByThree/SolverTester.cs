@@ -61,7 +61,7 @@ namespace Cubing.ThreeByThree
         }
 
         /// <summary>
-        /// Test a specific solver.
+        /// Run the test for a specific solver.
         /// <see cref="RunTest(Func{CubieCube, TimeSpan, Alg})"/><c>[i][c]</c>
         /// refers to the solution for cube <c>c</c> in iteration <c>i</c>. See
         /// <see cref="GetTimeouts()"/> for the timeouts used in each iteration.

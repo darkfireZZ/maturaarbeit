@@ -4,12 +4,13 @@ using static Cubing.ThreeByThree.Constants;
 
 namespace Cubing.ThreeByThree.TwoPhase
 {
-    [System.Obsolete("Not optimized")]
+    //IMPR
     /// <summary>
     /// <see cref="SinglePhaseSolver"/> contains methods for solving each phase
     /// of the two-phase algorithm optimally. It uses the first solution found
     /// and is not optimized any further.
     /// </summary>
+    [System.Obsolete("Not optimized")]
     public static class SinglePhaseSolver
     {
         /// <summary>
