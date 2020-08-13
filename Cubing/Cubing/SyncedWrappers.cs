@@ -25,7 +25,7 @@ namespace Cubing
         }
     }
 
-    public class SyncedDoubleWrapper
+    public class SyncedFloatWrapper
     {
         private static object _lockObject = new object();
 

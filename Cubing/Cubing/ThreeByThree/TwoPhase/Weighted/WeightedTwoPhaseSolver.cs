@@ -26,23 +26,23 @@ namespace Cubing.ThreeByThree.TwoPhase
 
         private const int SameFace = 0, SameAxisInWrongOrder = 3;
 
-        private double[] _nonRotatedWeights;
-        private double[] _rotatedWeights;
+        private float[] _nonRotatedWeights;
+        private float[] _rotatedWeights;
         private IEnumerable<Move> _phase1MoveOrder;
         private IEnumerable<Move> _phase2MoveOrder;
-        private double[] _weightedPhase2PruningTable;
+        private float[] _weightedPhase2PruningTable;
 
         /// <summary>
         /// Interrupts the search if set to true.
         /// </summary>
         public SyncedBoolWrapper IsTerminated;
-        private SyncedDoubleWrapper _bestSolutionCost;
+        private SyncedFloatWrapper _bestSolutionCost;
         private SyncedIntWrapper _bestSolutionIndex;
         private List<Alg> _solutions;
         private Stopwatch _timePassed;
         private TimeSpan _timeout;
-        private double _returnValue;
-        private double _requiredValue;
+        private float _returnValue;
+        private float _requiredValue;
 
         private CubieCube _notRotatedCube;
 
@@ -56,7 +56,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         private int[] _currentPhase1Solution;
         private int[] _currentPhase2Solution;
 
-        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, double returnValue, double requiredValue, double[] weights, double[] weightedPhase2PruningTable, bool searchDifferentOrientations = true, bool searchInverse = true)
+        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, float returnValue, float requiredValue, float[] weights, float[] weightedPhase2PruningTable, bool searchDifferentOrientations = true, bool searchInverse = true)
         {
             if (cubeToSolve is null)
                 throw new ArgumentNullException(nameof(cubeToSolve) + " is null.");
@@ -73,7 +73,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             timePassed.Start();
 
             SyncedBoolWrapper isTerminated = new SyncedBoolWrapper() { Value = false };
-            SyncedDoubleWrapper bestSolutionCost = new SyncedDoubleWrapper() { Value = double.MaxValue };
+            SyncedFloatWrapper bestSolutionCost = new SyncedFloatWrapper() { Value = float.MaxValue };
             SyncedIntWrapper bestSolutionIndex = new SyncedIntWrapper() { Value = -1 };
             List<Alg> solutions = new List<Alg>();
 
@@ -97,7 +97,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                     _bestSolutionIndex = bestSolutionIndex,
                     _rotation = orientation % 3,
                     _inversed = orientation / 3 == 1,
-                    _nonRotatedWeights = (double[])weights.Clone(), //create a copy to avoid issues caused by multithreading
+                    _nonRotatedWeights = (float[])weights.Clone(), //create a copy to avoid issues caused by multithreading
                     _weightedPhase2PruningTable = weightedPhase2PruningTable
                 };
 
@@ -143,7 +143,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             #endregion rotate cube
 
             #region rotate weights
-            _rotatedWeights = new double[NumMoves];
+            _rotatedWeights = new float[NumMoves];
 
             for (int oldIndex = 0; oldIndex < NumMoves; oldIndex++)
             {
@@ -158,7 +158,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                 for (int face = 0; face < NumFaces; face++)
                 {
                     //face * 3 = 90° cw, face * 3 + 2 = 90° ccw
-                    double temp = _rotatedWeights[face * 3];
+                    float temp = _rotatedWeights[face * 3];
                     _rotatedWeights[face * 3] = _rotatedWeights[face * 3 + 2];
                     _rotatedWeights[face * 3 + 2] = temp;
                 }
@@ -207,7 +207,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                 int dEdges = _dEdges;
                 int equatorPermutation = equator;
 
-                double phase1Cost = 0d;
+                float phase1Cost = 0f;
 
                 for (int moveIndex = 0; moveIndex < depth; moveIndex++)
                 {
@@ -219,6 +219,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                     dEdges = TableController.DEdgesMoveTable[dEdges, move];
                 }
 
+                //NEXT adapt
                 int cornerEquatorPruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equator;
                 double weightedCornerEquatorPruningValue = _weightedPhase2PruningTable[cornerEquatorPruningIndex];
                 if (weightedCornerEquatorPruningValue + phase1Cost > _bestSolutionCost.Value)
@@ -271,7 +272,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             }
         }
 
-        private void SearchPhase2(int cp, int equatorPermutation, int udEdgePermutation, int depth, int remainingMoves, double costSoFar, int phase1Length)
+        private void SearchPhase2(int cp, int equatorPermutation, int udEdgePermutation, int depth, int remainingMoves, float costSoFar, int phase1Length)
         {
             if (IsTerminated.Value)
                 return;
@@ -286,7 +287,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                 if (_inversed)
                     solution = solution.Inverse();
 
-                double solutionCost = solution.Select(move => _nonRotatedWeights[(int)move])
+                float solutionCost = solution.Select(move => _nonRotatedWeights[(int)move])
                                               .Sum();
 
                 lock (_lockObject)
@@ -339,8 +340,9 @@ namespace Cubing.ThreeByThree.TwoPhase
                 if (Math.Max(cornerUdPruningValue, cornerEquatorPruningValue) > remainingMoves - 1)
                     continue;
 
-                double newCostSoFar = costSoFar + _rotatedWeights[move];
-                double weightedCornerEquatorPruningValue = _weightedPhase2PruningTable[cornerEquatorPruningIndex];
+                //NEXT adapt
+                float newCostSoFar = costSoFar + _rotatedWeights[move];
+                float weightedCornerEquatorPruningValue = _weightedPhase2PruningTable[cornerEquatorPruningIndex];
                 if (weightedCornerEquatorPruningValue + newCostSoFar > _bestSolutionCost.Value) //TODO better comment //double inaccuracies don't matter
                     continue;
 

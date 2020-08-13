@@ -20,20 +20,20 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// <exception cref="InvalidWeightsException">
         /// Thrown if <paramref name="weights"/> is invalid.
         /// </exception>
-        public static double[] CreateWeightedPhase2CornerEquatorTable(double[] weights)
+        public static float[] CreateWeightedPhase2CornerEquatorTable(float[] weights)
         {
             MoveWeightsUtils.ValidateWeights(weights);
 
-            double invalid = double.NaN;
+            float invalid = float.NaN;
 
-            double[] pruningTable = Enumerable
+            float[] pruningTable = Enumerable
                 .Repeat(invalid, TwoPhaseConstants.CornerEquatorPruningTableSizePhase2)
                 .ToArray();
 
             TableController.InitializeCpMoveTable();
             TableController.InitializeEquatorPermutationMoveTable();
 
-            pruningTable[0] = 0d;
+            pruningTable[0] = 0f;
             int numChanged = -1;
 
             while (numChanged != 0)
@@ -52,7 +52,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                                 int newEquatorPermutation = TableController.EquatorPermutationMoveTable[equatorPermutation, move];
                                 int newIndex = TwoPhaseConstants.NumEquatorPermutations * newCp + newEquatorPermutation;
 
-                                double newPruningValue = pruningTable[index] + weights[move];
+                                float newPruningValue = pruningTable[index] + weights[move];
 
                                 if (pruningTable[newIndex] == invalid || pruningTable[newIndex] > newPruningValue)
                                 {
@@ -80,20 +80,20 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// <exception cref="InvalidWeightsException">
         /// Thrown if <paramref name="weights"/> is invalid.
         /// </exception>
-        public static double[] CreateWeightedPhase2UdEquatorTable(double[] weights)
+        public static float[] CreateWeightedPhase2UdEquatorTable(float[] weights)
         {
             MoveWeightsUtils.ValidateWeights(weights);
 
-            double invalid = double.NaN;
+            float invalid = float.NaN;
 
-            double[] pruningTable = Enumerable
+            float[] pruningTable = Enumerable
                 .Repeat(invalid, TwoPhaseConstants.UdEquatorPruningTableSizePhase2)
                 .ToArray();
 
             TableController.InitializeUdEdgePermutationMoveTable();
             TableController.InitializeEquatorPermutationMoveTable();
 
-            pruningTable[0] = 0d;
+            pruningTable[0] = 0f;
             int numChanged = -1;
 
             while (numChanged != 0)
@@ -112,7 +112,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                                 int newEquatorPermutation = TableController.EquatorPermutationMoveTable[equatorPermutation, move];
                                 int newIndex = TwoPhaseConstants.NumEquatorPermutations * newUdEdgePermutation + newEquatorPermutation;
 
-                                double newPruningValue = pruningTable[index] + weights[move];
+                                float newPruningValue = pruningTable[index] + weights[move];
 
                                 if (pruningTable[newIndex] == invalid || pruningTable[newIndex] > newPruningValue)
                                 {

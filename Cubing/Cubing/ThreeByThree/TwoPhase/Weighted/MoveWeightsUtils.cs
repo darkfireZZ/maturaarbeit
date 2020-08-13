@@ -21,7 +21,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// <exception cref="InvalidWeightsException">
         /// Thrown if the weights array is invalid.
         /// </exception>
-        public static void ValidateWeights(double[] weights)
+        public static void ValidateWeights(float[] weights)
         {
             if (weights is null)
                 throw new InvalidWeightsException("Invalid weights", new ArgumentNullException(nameof(weights) + " is null."));
@@ -49,7 +49,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// <exception cref="InvalidWeightsException">
         /// Thrown if <paramref name="weights"/> is invalid.
         /// </exception>
-        public static IEnumerable<Move> OrderMoves(IEnumerable<Move> moves, double[] weights)
+        public static IEnumerable<Move> OrderMoves(IEnumerable<Move> moves, float[] weights)
         {
             if (moves is null)
                 throw new ArgumentNullException(nameof(moves) + " is null.");
@@ -58,13 +58,13 @@ namespace Cubing.ThreeByThree.TwoPhase
             return moves.Distinct().OrderBy(move => weights[(int)move]);
         }
 
-        public static double CalculateCost(IEnumerable<Move> alg, double[] weights)
+        public static float CalculateCost(IEnumerable<Move> alg, float[] weights)
         {
             if (alg is null)
                 throw new ArgumentNullException(nameof(alg) + " is null.");
             ValidateWeights(weights);
 
-            double cost = 0d;
+            float cost = 0f;
             foreach (Move move in alg)
                 cost += weights[(int)move];
 

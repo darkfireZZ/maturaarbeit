@@ -88,14 +88,11 @@ namespace CubingTests
             Assert.IsNotNull(udEdgePermutationMoveTable);
 
             Assert.AreEqual(udEdgePermutationMoveTable.GetLength(0), Coordinates.NumUdEdgePermutationCoords);
-            Assert.AreEqual(udEdgePermutationMoveTable.GetLength(1), Constants.NumMoves);
+            Assert.AreEqual(udEdgePermutationMoveTable.GetLength(1), TwoPhaseConstants.NumMovesPhase2);
 
             for (int udEdgePermutation = 0; udEdgePermutation < Coordinates.NumUdEdgePermutationCoords; udEdgePermutation++)
-                for (int move = 0; move < Constants.NumMoves; move++)
-                {
-                    if (TwoPhaseConstants.Phase2Moves.Contains((Move)move))
-                        Assert.IsTrue(udEdgePermutationMoveTable[udEdgePermutation, move] < Coordinates.NumUdEdgePermutationCoords);
-                }
+                foreach (Move move in TwoPhaseConstants.Phase2Moves)
+                    Assert.IsTrue(udEdgePermutationMoveTable[udEdgePermutation, MoveTables.Phase1IndexToPhase2Index[(int)move]] < Coordinates.NumUdEdgePermutationCoords);
         }
 
         [TestMethod]

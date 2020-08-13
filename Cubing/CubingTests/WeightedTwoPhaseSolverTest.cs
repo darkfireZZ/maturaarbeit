@@ -22,29 +22,29 @@ namespace CubingTests
             CubieCube cube = CubieCube.FromAlg(scramble);
 
             TimeSpan timeout = TimeSpan.FromSeconds(1);
-            double returnValue = 4000;
-            double requiredValue = 5000;
-            double[] weights = {
-                169.658122242946,
-                253.796705882179,
-                211.084512473536,
-                206.193406852305,
-                299.809258427086,
-                155.496912851115,
-                158.690899467791,
-                281.70422762001,
-                346.448146439892,
-                274.885031555195,
-                311.019164835258,
-                258.486161100002,
-                196.885474673572,
-                275.657440421246,
-                214.624405800259,
-                322.649818802591,
-                354.012863621357,
-                321.02200029978 };
+            float returnValue = 4000;
+            float requiredValue = 5000;
+            float[] weights = {
+                169.658122242946f,
+                253.796705882179f,
+                211.084512473536f,
+                206.193406852305f,
+                299.809258427086f,
+                155.496912851115f,
+                158.690899467791f,
+                281.70422762001f,
+                346.448146439892f,
+                274.885031555195f,
+                311.019164835258f,
+                258.486161100002f,
+                196.885474673572f,
+                275.657440421246f,
+                214.624405800259f,
+                322.649818802591f,
+                354.012863621357f,
+                321.02200029978f };
 
-            double[] weightedPhase2PruningTable = WeightedPruningTables.CreateWeightedPhase2CornerEquatorTable(weights);
+            float[] weightedPhase2PruningTable = WeightedPruningTables.CreateWeightedPhase2CornerEquatorTable(weights);
 
             Alg solution = WeightedTwoPhaseSolver.FindSolution(cube, timeout, returnValue, requiredValue, weights, weightedPhase2PruningTable);
             Console.WriteLine("Scramble: " + scramble + "\nSolution: " + solution + "\nLength: " + solution.Length);
@@ -68,34 +68,34 @@ namespace CubingTests
             CubieCube cube = CubieCube.FromAlg(scramble);
 
             TimeSpan timeout = TimeSpan.FromSeconds(0);
-            double requiredValue = 4700d;
+            float requiredValue = 4700f;
 
-            double[] weights = {
-                169.658122242946, // R
-                253.796705882179, // R2
-                211.084512473536, // R'
-                206.193406852305, // U
-                299.809258427086, // U2
-                155.496912851115, // U'
-                158.690899467791, // F
-                281.70422762001,  // F2
-                346.448146439892, // F'
-                274.885031555195, // L
-                311.019164835258, // L2
-                258.486161100002, // L'
-                196.885474673572, // D
-                275.657440421246, // D2
-                214.624405800259, // D'
-                322.649818802591, // B
-                354.012863621357, // B2
-                321.02200029978   // B'
+            float[] weights = {
+                169.658122242946f, // R
+                253.796705882179f, // R2
+                211.084512473536f, // R'
+                206.193406852305f, // U
+                299.809258427086f, // U2
+                155.496912851115f, // U'
+                158.690899467791f, // F
+                281.70422762001f,  // F2
+                346.448146439892f, // F'
+                274.885031555195f, // L
+                311.019164835258f, // L2
+                258.486161100002f, // L'
+                196.885474673572f, // D
+                275.657440421246f, // D2
+                214.624405800259f, // D'
+                322.649818802591f, // B
+                354.012863621357f, // B2
+                321.02200029978f   // B'
             };
 
-            double[] weightedPhase2PruningTable = WeightedPruningTables.CreateWeightedPhase2CornerEquatorTable(weights);
+            float[] weightedPhase2PruningTable = WeightedPruningTables.CreateWeightedPhase2CornerEquatorTable(weights);
 
             Alg solution = WeightedTwoPhaseSolver.FindSolution(cube, timeout, requiredValue, requiredValue, weights, weightedPhase2PruningTable);
 
-            double cost = solution.Select(move => weights[(int)move])
+            float cost = solution.Select(move => weights[(int)move])
                                   .Sum();
 
             Assert.IsTrue(cost <= requiredValue);
