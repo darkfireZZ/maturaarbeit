@@ -27,18 +27,6 @@ namespace Cubing.ThreeByThree
         };
 
         /// <summary>
-        /// An array of all the moves of the half-turn metric.
-        /// </summary>
-        public static readonly IReadOnlyCollection<Move> AllMoves = Array.AsReadOnly(new[] {
-            Move.R1, Move.R2, Move.R3,
-            Move.U1, Move.U2, Move.U3,
-            Move.F1, Move.F2, Move.F3,
-            Move.L1, Move.L2, Move.L3,
-            Move.D1, Move.D2, Move.D3,
-            Move.B1, Move.B2, Move.B3
-        });
-
-        /// <summary>
         /// Get the string representation of a move.
         /// </summary>
         /// <remarks>
@@ -53,8 +41,8 @@ namespace Cubing.ThreeByThree
             => _moveToStringArray[(int)move];
 
         /// <summary>
-        /// Maps the string representations of a move to a
-        /// <see cref="Move"/> enum.
+        /// Maps the string representations of a move to a <see cref="Move"/>
+        /// enum.
         /// </summary>
         /// <remarks>
         /// See <seealso cref="MoveToString(Move)"/> to get a string from
@@ -65,8 +53,7 @@ namespace Cubing.ThreeByThree
         /// </param>
         /// <returns>The enum representation of the move.</returns>
         /// <exception cref="ArgumentException">
-        /// Thrown if <paramref name="move"/> does not correspond to a
-        /// move.
+        /// Thrown if <paramref name="move"/> does not correspond to a move.
         /// </exception>
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="move"/> is null.
@@ -87,15 +74,13 @@ namespace Cubing.ThreeByThree
         /// Get the move on the specified face with the specified number
         /// of quarter turns in clockwise direction.
         /// </summary>
-        /// <param name="face">
-        /// The face of the move.
-        /// </param>
+        /// <param name="face">The face of the move.</param>
         /// <param name="quarterTurns">
         /// The number of quarter turns in clockwise direction of the move.
         /// </param>
         /// <returns>
-        /// The move on the specified face with the specified number
-        /// of quarter turns in clockwise direction.
+        /// The move on the specified face with the specified number of quarter
+        /// turns in clockwise direction.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// Thrown if <paramref name="quarterTurns"/> has a value other
@@ -149,8 +134,7 @@ namespace Cubing.ThreeByThree
         /// <param name="move">The move to rotate.</param>
         /// <param name="rotation">The rotation to apply.</param>
         /// <returns>
-        /// The <paramref name="move"/> rotated by
-        /// <paramref name="rotation"/>.
+        /// The <paramref name="move"/> rotated by <paramref name="rotation"/>.
         /// </returns>
         public static Move Rotate(this Move move, Rotation rotation)
             => MoveFromFaceAndQuarterTurns(move.Face().Rotate(rotation), move.QuarterTurns());
@@ -160,25 +144,21 @@ namespace Cubing.ThreeByThree
     /// All different 3x3x3 moves in half turn metric (HTM).
     /// </summary>
     /// <remarks>
+    /// <para><c>move / 3</c> is the index of the face of a move.</para>
     /// <para>
-    /// <c>move / 3</c> is the face of a move. Where 0 is the R face, 1 is
-    /// the U face, 2 is the F face, 3 is the L face, 4 is the D face and
-    /// 5 is the B face.
-    /// </para>
-    /// <para>
-    /// <c>move % 3 + 1</c> is the number of quarter turns in clockwise
-    /// direction of a move.
+    /// <c>move % 3 + 1</c> is the number of quarter turns of a move in
+    /// clockwise direction.
     /// </para>
     /// </remarks>
     public enum Move : int
     {
-        #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        #pragma warning disable CS1591
         R1 = 0, R2 = 1, R3 = 2,
         U1 = 3, U2 = 4, U3 = 5,
         F1 = 6, F2 = 7, F3 = 8,
         L1 = 9, L2 = 10, L3 = 11,
         D1 = 12, D2 = 13, D3 = 14,
         B1 = 15, B2 = 16, B3 = 17
-        #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+        #pragma warning restore CS1591
     }
 }

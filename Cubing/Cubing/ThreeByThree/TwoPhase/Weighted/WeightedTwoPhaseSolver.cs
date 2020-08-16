@@ -8,7 +8,7 @@ using static Cubing.ThreeByThree.Constants;
 namespace Cubing.ThreeByThree.TwoPhase
 {
     /// <summary>
-    /// An implementation of Herbert Kociemba's two-phase algorithm.
+    /// A weighted adaptation of Herbert Kociemba's two-phase algorithm.
     /// </summary>
     public class WeightedTwoPhaseSolver
     {
@@ -18,7 +18,6 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// The maximum allowed length for a phase 2 solution.
         /// </summary>
         public static int MaxPhase2Length { get; set; } = 10;
-        //TODO calculate estimate
         /// <summary>
         /// The maximum allowed length for a phase 1 solution.
         /// </summary>
@@ -30,19 +29,20 @@ namespace Cubing.ThreeByThree.TwoPhase
         private float[] _rotatedWeights;
         private IEnumerable<Move> _phase1MoveOrder;
         private IEnumerable<Move> _phase2MoveOrder;
-        private float[] _weightedPhase2PruningTable;
+        private float[] _weightedCornerEquatorPruningTable;
 
         /// <summary>
-        /// Interrupts the search if set to true.
+        /// Interrupts the search when set to true.
         /// </summary>
         public SyncedBoolWrapper IsTerminated;
+
         private SyncedFloatWrapper _bestSolutionCost;
         private SyncedIntWrapper _bestSolutionIndex;
         private List<Alg> _solutions;
         private Stopwatch _timePassed;
         private TimeSpan _timeout;
-        private float _returnValue;
-        private float _requiredValue;
+        private float _returnCost;
+        private float _requiredCost;
         private float _deltaMin;
 
         private CubieCube _notRotatedCube;
@@ -57,18 +57,105 @@ namespace Cubing.ThreeByThree.TwoPhase
         private int[] _currentPhase1Solution;
         private int[] _currentPhase2Solution;
 
-        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, float returnValue, float requiredValue, float[] weights, float[] weightedPhase2PruningTable, float deltaMin = 0f, bool searchDifferentOrientations = true, bool searchInverse = true)
+        /// <summary>
+        /// Find a near-optimal solution for a cube in respect to the cost of
+        /// the moves. If no matching solution is found, the return value is
+        /// null.
+        /// </summary>
+        /// <param name="cubeToSolve">The cube to solve.</param>
+        /// <param name="timeout">
+        /// Interrupt the search after that much time has passed.
+        /// </param>
+        /// <param name="returnCost">
+        /// The search stops as soon as a solution of the specified cost is
+        /// found. Be careful with setting <paramref name="returnCost"/> to a
+        /// value too small, because there might not be a solution cheaper than
+        /// or matching that cost. In which case the algorithm will run for a
+        /// long time.
+        /// </param>
+        /// <param name="requiredCost">
+        /// Ignore the timeout until a solution of a cost less than or equal to
+        /// <paramref name="requiredCost"/> is found. If the value of
+        /// <paramref name="requiredCost"/> is negative, this parameter is
+        /// ignored. If <paramref name="requiredCost"/> is positive, it must be
+        /// larger than or equal to <paramref name="returnCost"/>. Setting the
+        /// value to a large value will cause the first solution found after
+        /// timeout to be returned.
+        /// </param>
+        /// <param name="weights">The weights to use.</param>
+        /// <param name="weightedCornerEquatorPruningTable">
+        /// The weighted corner permutation and equator order pruning table
+        /// created by
+        /// <see cref="WeightedPruningTables.CreateWeightedPhase2CornerEquatorTable(float[])"/>.
+        /// The weights used to create this table must be equatl to
+        /// <paramref name="weights"/>.
+        /// </param>
+        /// <param name="deltaMin">
+        /// The minimum difference a newly found solution has to exceed the
+        /// cheapest solution found. Only used to experiment. Set to 0 for
+        /// optimal solutions.
+        /// </param>
+        /// <param name="searchDifferentOrientations">
+        /// Start three threads each solving a 120° offset of the cube.
+        /// </param>
+        /// <param name="searchInverse">
+        /// For every orientation solved, start another thread that solves its
+        /// inverse.
+        /// </param>
+        /// <returns>
+        /// A near-optimal solution for the specified cube in respect to its
+        /// cost. Null, if no matching solution is found.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="cubeToSolve"/> or
+        /// <paramref name="weightedCornerEquatorPruningTable"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="timeout"/>,
+        /// <paramref name="returnCost"/> or <paramref name="deltaMin"/> is
+        /// negative. Also thrown if <paramref name="requiredCost"/> is
+        /// positive and less than <paramref name="returnCost"/>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// Thrown if <paramref name="weightedCornerEquatorPruningTable"/>.Length
+        /// is not of the expected size.
+        /// </exception>
+        /// <exception cref="InvalidWeightsException">
+        /// Thrown if <paramref name="weights"/> is invalid.
+        /// </exception>
+        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, float returnCost, float requiredCost, float[] weights, float[] weightedCornerEquatorPruningTable, float deltaMin = 0f, bool searchDifferentOrientations = true, bool searchInverse = true)
         {
+            #region parameter checks
             if (cubeToSolve is null)
                 throw new ArgumentNullException(nameof(cubeToSolve) + " is null.");
-            if (returnValue < 0d)
-                throw new ArgumentOutOfRangeException(nameof(returnValue) + " cannot be negative: " + returnValue);
-            if (requiredValue > 0d && requiredValue < returnValue)
-                throw new ArgumentOutOfRangeException(nameof(requiredValue) + " must either be negative or >= " + nameof(returnValue) + ": " + requiredValue + " (" + nameof(requiredValue) + ") < " + returnValue + " (" + nameof(returnValue) + ")");
+            if (timeout < TimeSpan.Zero)
+                throw new ArgumentOutOfRangeException(nameof(timeout) + " cannot be negative: " + timeout);
+            if (returnCost < 0d)
+                throw new ArgumentOutOfRangeException(nameof(returnCost) + " cannot be negative: " + returnCost);
+            if (requiredCost > 0d && requiredCost < returnCost)
+                throw new ArgumentOutOfRangeException(nameof(requiredCost) + " must either be negative or >= " + nameof(returnCost) + ": " + requiredCost + " (" + nameof(requiredCost) + ") < " + returnCost + " (" + nameof(returnCost) + ")");
             MoveWeightsUtils.ValidateWeights(weights);
+            if (weightedCornerEquatorPruningTable is null)
+                throw new ArgumentNullException(nameof(weightedCornerEquatorPruningTable) + " is null.");
+            if (weightedCornerEquatorPruningTable.Length != PruningTableConstants.CornerEquatorPruningTableSizePhase2)
+                throw new ArgumentException(nameof(weightedCornerEquatorPruningTable) + " must be of size " + PruningTableConstants.CornerEquatorPruningTableSizePhase2);
+            if (deltaMin < 0d)
+                throw new ArgumentOutOfRangeException(nameof(deltaMin) + " cannot be negative: " + deltaMin);
+            #endregion paramter checks
 
-            TableController.InitializePhase1Tables();
-            TableController.InitializePhase2Tables();
+            //initialize move tables
+            TableController.InitializeCornerOrientationMoveTable();
+            TableController.InitializeCornerPermutationMoveTable();
+            TableController.InitializeDEdgePermutationMoveTable();
+            TableController.InitializeEdgeOrientationMoveTable();
+            TableController.InitializeEquatorPermutationMoveTable();
+            TableController.InitializeUdEdgeOrderMoveTable();
+            TableController.InitializeUEdgePermutationMoveTable();
+
+            //initialize pruning tables
+            TableController.InitializePhase1PruningTable();
+            TableController.InitializePhase2CornerEquatorPruningTable();
+            TableController.InitializePhase2CornerUdPruningTable();
 
             Stopwatch timePassed = new Stopwatch();
             timePassed.Start();
@@ -90,8 +177,8 @@ namespace Cubing.ThreeByThree.TwoPhase
                     _notRotatedCube = cubeToSolve.Clone(), //create a copy to avoid issues caused by multithreading
                     _timePassed = timePassed,
                     _timeout = timeout,
-                    _returnValue = returnValue,
-                    _requiredValue = requiredValue,
+                    _returnCost = returnCost,
+                    _requiredCost = requiredCost,
                     IsTerminated = isTerminated,
                     _solutions = solutions,
                     _bestSolutionCost = bestSolutionCost,
@@ -99,7 +186,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                     _rotation = orientation % 3,
                     _inversed = orientation / 3 == 1,
                     _nonRotatedWeights = (float[])weights.Clone(), //create a copy to avoid issues caused by multithreading
-                    _weightedPhase2PruningTable = weightedPhase2PruningTable,
+                    _weightedCornerEquatorPruningTable = weightedCornerEquatorPruningTable,
                     _deltaMin = deltaMin
                 };
 
@@ -167,23 +254,23 @@ namespace Cubing.ThreeByThree.TwoPhase
             }
             #endregion rotate weights
 
-            _phase1MoveOrder = MoveWeightsUtils.OrderedMoves(Moves.AllMoves, _rotatedWeights);
+            _phase1MoveOrder = MoveWeightsUtils.OrderedMoves((Move[])Enum.GetValues(typeof(Move)), _rotatedWeights);
             _phase2MoveOrder = MoveWeightsUtils.OrderedMoves(TwoPhaseConstants.Phase2Moves, _rotatedWeights);
 
             //calculate coordinates
-            int co = Coordinates.GetCoCoord(rotatedCube);
-            int cp = Coordinates.GetCpCoord(rotatedCube);
-            int eo = Coordinates.GetEoCoord(rotatedCube);
-            int equator = Coordinates.GetEquatorCoord(rotatedCube);
-            int uEdges = Coordinates.GetUEdgeCoord(rotatedCube);
-            int dEdges = Coordinates.GetDEdgeCoord(rotatedCube);
+            int co = Coordinates.GetCornerOrientation(rotatedCube);
+            int cp = Coordinates.GetCornerPermutation(rotatedCube);
+            int eo = Coordinates.GetEdgeOrientation(rotatedCube);
+            int equator = Coordinates.GetEquatorPermutation(rotatedCube);
+            int uEdges = Coordinates.GetUEdgePermutation(rotatedCube);
+            int dEdges = Coordinates.GetDEdgePermutation(rotatedCube);
 
             //store coordinates used in phase 2
             _cp = cp;
             _uEdges = uEdges;
             _dEdges = dEdges;
 
-            int pruningIndex = PruningTables.GetPhase1PruningIndex(co, eo, equator / Coordinates.NumEquatorPermutationCoords);
+            int pruningIndex = PruningTables.GetPhase1PruningIndex(co, eo, equator / Coordinates.NumEquatorOrders);
             int minPhase1Length = TableController.Phase1PruningTable[pruningIndex];
 
             _currentPhase1Solution = new int[MaxPhase1Length];
@@ -201,7 +288,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             if (remainingMoves == 0) //check if solved
             {
                 lock (_lockObject) //manage timeout
-                    if (_timePassed.Elapsed > _timeout && (_requiredValue < 0d || (_solutions.Count > 0 && _bestSolutionCost.Value <= _requiredValue)))
+                    if (_timePassed.Elapsed > _timeout && (_requiredCost < 0d || (_solutions.Count > 0 && _bestSolutionCost.Value <= _requiredCost)))
                         IsTerminated.Value = true;
 
                 int cp = _cp;
@@ -216,34 +303,33 @@ namespace Cubing.ThreeByThree.TwoPhase
                     int move = _currentPhase1Solution[moveIndex];
 
                     phase1Cost += _rotatedWeights[moveIndex];
-                    cp = TableController.CpMoveTable[cp, move];
-                    uEdges = TableController.UEdgesMoveTable[uEdges, move];
-                    dEdges = TableController.DEdgesMoveTable[dEdges, move];
+                    cp = TableController.CornerPermutationMoveTable[cp, move];
+                    uEdges = TableController.UEdgePermutationMoveTable[uEdges, move];
+                    dEdges = TableController.DEdgePermutationMoveTable[dEdges, move];
                 }
 
-                //NEXT adapt
-                int cornerEquatorPruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equator;
-                double weightedCornerEquatorPruningValue = _weightedPhase2PruningTable[cornerEquatorPruningIndex];
+                int cornerEquatorPruningIndex = Coordinates.NumEquatorOrders * cp + equator;
+                double weightedCornerEquatorPruningValue = _weightedCornerEquatorPruningTable[cornerEquatorPruningIndex];
                 if (weightedCornerEquatorPruningValue + phase1Cost + _deltaMin > _bestSolutionCost.Value)
                     return;
                 int cornerEquatorPruningValue = TableController.Phase2CornerEquatorPruningTable[cornerEquatorPruningIndex];
                 if (cornerEquatorPruningValue > MaxPhase2Length)
                     return;
 
-                int udEdgePermutation = Coordinates.CombineUAndDEdgePermutation(uEdges, dEdges);
+                int udEdgeOrder = Coordinates.CombineUEdgePermutationAndDEdgeOrder(uEdges, dEdges % Coordinates.NumDEdgeOrders);
 
-                int cornerUdPruningIndex = PruningTables.GetPhase2CornerUdPruningIndex(udEdgePermutation, cp);
+                int cornerUdPruningIndex = PruningTables.GetPhase2CornerUdPruningIndex(udEdgeOrder, cp);
                 int minMoves = TableController.Phase2CornerUdPruningTable[cornerUdPruningIndex];
 
                 for (int length = minMoves; length <= MaxPhase2Length; length++)
-                    SearchPhase2(cp, equatorPermutation, udEdgePermutation, depth: 0, remainingMoves: length, phase1Cost, phase1Length: depth);
+                    SearchPhase2(cp, equatorPermutation, udEdgeOrder, depth: 0, remainingMoves: length, phase1Cost, phase1Length: depth);
 
                 return;
             }
 
             foreach (int move in _phase1MoveOrder)
             {
-                //If the cube is already in the subgroup H and there are less
+                //If the cube is already in the subgroup G1 and there are less
                 //than 5 moves left it is only possible to stay in the subgroup
                 //if exclusivly phase 2 moves are used, which means that this
                 //solution can also be generated in phase 2.
@@ -259,12 +345,12 @@ namespace Cubing.ThreeByThree.TwoPhase
                         continue;
                 }
 
-                int newEo = TableController.EoMoveTable[eo, move];
-                int newCo = TableController.CoMoveTable[co, move];
-                int newEquator = TableController.EquatorMoveTable[equator, move];
+                int newEo = TableController.EdgeOrientationMoveTable[eo, move];
+                int newCo = TableController.CornerOrientationMoveTable[co, move];
+                int newEquator = TableController.EquatorPermutationMoveTable[equator, move];
 
                 //prune
-                int pruningCoord = PruningTables.GetPhase1PruningIndex(newCo, newEo, newEquator / Coordinates.NumEquatorPermutationCoords);
+                int pruningCoord = PruningTables.GetPhase1PruningIndex(newCo, newEo, newEquator / Coordinates.NumEquatorOrders);
                 int pruningValue = TableController.Phase1PruningTable[pruningCoord];
                 if (pruningValue > remainingMoves - 1)
                     continue;
@@ -274,7 +360,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             }
         }
 
-        private void SearchPhase2(int cp, int equatorPermutation, int udEdgePermutation, int depth, int remainingMoves, float costSoFar, int phase1Length)
+        private void SearchPhase2(int cp, int equatorPermutation, int udEdgeOrder, int depth, int remainingMoves, float costSoFar, int phase1Length)
         {
             if (IsTerminated.Value)
                 return;
@@ -303,7 +389,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                     _solutions.Add(solution);
                 }
 
-                if (solutionCost <= _returnValue)
+                if (solutionCost <= _returnCost)
                     IsTerminated.Value = true;
 
                 return;
@@ -330,21 +416,20 @@ namespace Cubing.ThreeByThree.TwoPhase
                         continue;
                 }
 
-                int newCp = TableController.CpMoveTable[cp, move];
-                int newEquatorPermutation = TableController.EquatorPermutationMoveTable[equatorPermutation, move];
-                int newUdEdgePermutation = TableController.UdEdgePermutationMoveTable[udEdgePermutation, MoveTables.Phase1IndexToPhase2Index[move]];
+                int newCp = TableController.CornerPermutationMoveTable[cp, move];
+                int newEquatorPermutation = TableController.EquatorOrderMoveTable[equatorPermutation, move];
+                int newUdEdgePermutation = TableController.UdEdgeOrderMoveTable[udEdgeOrder, MoveTables.Phase1IndexToPhase2Index[move]];
 
                 //prune
                 int cornerUdPruningIndex = PruningTables.GetPhase2CornerUdPruningIndex(newUdEdgePermutation, newCp);
                 int cornerUdPruningValue = TableController.Phase2CornerUdPruningTable[cornerUdPruningIndex];
-                int cornerEquatorPruningIndex = TwoPhaseConstants.NumEquatorPermutations * newCp + newEquatorPermutation;
+                int cornerEquatorPruningIndex = Coordinates.NumEquatorOrders * newCp + newEquatorPermutation;
                 int cornerEquatorPruningValue = TableController.Phase2CornerEquatorPruningTable[cornerEquatorPruningIndex];
                 if (Math.Max(cornerUdPruningValue, cornerEquatorPruningValue) > remainingMoves - 1)
                     continue;
 
-                //NEXT adapt
                 float newCostSoFar = costSoFar + _rotatedWeights[move];
-                float weightedCornerEquatorPruningValue = _weightedPhase2PruningTable[cornerEquatorPruningIndex];
+                float weightedCornerEquatorPruningValue = _weightedCornerEquatorPruningTable[cornerEquatorPruningIndex];
                 if (weightedCornerEquatorPruningValue + newCostSoFar + _deltaMin > _bestSolutionCost.Value)
                     continue;
 

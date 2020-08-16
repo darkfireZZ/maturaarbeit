@@ -4,7 +4,7 @@ using System.IO;
 namespace Cubing.ThreeByThree.TwoPhase
 {
     /// <summary>
-    /// Stores all the frequently used tables for the two-phase solver.
+    /// Stores all tables required by the two-phase solver.
     /// </summary>
     public static class TableController
     {
@@ -14,41 +14,41 @@ namespace Cubing.ThreeByThree.TwoPhase
         public static string Directory { get; set; } = @"C:\ProgramData\nbCubeData";
 
         /// <summary>
-        /// The edge orientation move table.
-        /// </summary>
-        public static short[,] EoMoveTable { get; set; } = null;
-        /// <summary>
         /// The corner orientation move table.
         /// </summary>
-        public static short[,] CoMoveTable { get; set; } = null;
+        public static short[,] CornerOrientationMoveTable { get; set; } = null;
+        /// <summary>
+        /// The edge orientation move table.
+        /// </summary>
+        public static short[,] EdgeOrientationMoveTable { get; set; } = null;
         /// <summary>
         /// The equator distribution move table.
         /// </summary>
         public static short[,] EquatorDistributionMoveTable { get; set; } = null;
         /// <summary>
+        /// The equator order move table.
+        /// </summary>
+        public static sbyte[,] EquatorOrderMoveTable { get; set; } = null;
+        /// <summary>
         /// The equator permutation move table.
         /// </summary>
-        public static sbyte[,] EquatorPermutationMoveTable { get; set; } = null;
+        public static short[,] EquatorPermutationMoveTable { get; set; } = null;
         /// <summary>
-        /// The equator move table.
+        /// The U-edge permutation move table.
         /// </summary>
-        public static short[,] EquatorMoveTable { get; set; } = null;
+        public static short[,] UEdgePermutationMoveTable { get; set; } = null;
         /// <summary>
-        /// The U-edges move table.
+        /// The D-edge permutation move table.
         /// </summary>
-        public static short[,] UEdgesMoveTable { get; set; } = null;
-        /// <summary>
-        /// The D-edges move table.
-        /// </summary>
-        public static short[,] DEdgesMoveTable { get; set; } = null;
+        public static short[,] DEdgePermutationMoveTable { get; set; } = null;
         /// <summary>
         /// The corner permutation move table.
         /// </summary>
-        public static ushort[,] CpMoveTable { get; set; } = null;
+        public static ushort[,] CornerPermutationMoveTable { get; set; } = null;
         /// <summary>
-        /// The U and D edge permutation move table.
+        /// The U- and D-edge order move table.
         /// </summary>
-        public static ushort[,] UdEdgePermutationMoveTable { get; set; } = null;
+        public static ushort[,] UdEdgeOrderMoveTable { get; set; } = null;
 
         /// <summary>
         /// The pruning table for phase 1.
@@ -56,7 +56,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         public static byte[] Phase1PruningTable { get; set; } = null;
 
         /// <summary>
-        /// The corner permutation and equator permutation pruning table for phase 2.
+        /// The corner permutation and equator order pruning table for phase 2.
         /// </summary>
         public static byte[] Phase2CornerEquatorPruningTable { get; set; } = null;
 
@@ -66,26 +66,26 @@ namespace Cubing.ThreeByThree.TwoPhase
         public static byte[] Phase2CornerUdPruningTable { get; set; } = null;
 
         /// <summary>
-        /// Initialize the corner orientation move table for phase 1.
+        /// Initialize the corner orientation move table.
         /// </summary>
-        public static void InitializeCoMoveTable()
+        public static void InitializeCornerOrientationMoveTable()
         {
-            if (CoMoveTable is null)
+            if (CornerOrientationMoveTable is null)
             {
                 Console.WriteLine("Initializing corner orientation move table");
-                CoMoveTable = MoveTables.CreateCoMoveTable();
+                CornerOrientationMoveTable = MoveTables.CreateCornerOrientationMoveTable();
             }
         }
 
         /// <summary>
-        /// Initialize the edge orientation move table for phase 1.
+        /// Initialize the edge orientation move table.
         /// </summary>
-        public static void InitializeEoMoveTable()
+        public static void InitializeEdgeOrientationMoveTable()
         {
-            if (EoMoveTable is null)
+            if (EdgeOrientationMoveTable is null)
             {
                 Console.WriteLine("Initializing edge orientation move table");
-                EoMoveTable = MoveTables.CreateEoMoveTable();
+                EdgeOrientationMoveTable = MoveTables.CreateEdgeOrientationMoveTable();
             }
         }
 
@@ -102,6 +102,18 @@ namespace Cubing.ThreeByThree.TwoPhase
         }
 
         /// <summary>
+        /// Initialize the equator order move table.
+        /// </summary>
+        public static void InitializeEquatorOrderMoveTable()
+        {
+            if (EquatorOrderMoveTable is null)
+            {
+                Console.WriteLine("Initializing equator order move table");
+                EquatorOrderMoveTable = MoveTables.CreateEquatorOrderMoveTable();
+            }
+        }
+
+        /// <summary>
         /// Initialize the equator permutation move table.
         /// </summary>
         public static void InitializeEquatorPermutationMoveTable()
@@ -114,90 +126,54 @@ namespace Cubing.ThreeByThree.TwoPhase
         }
 
         /// <summary>
-        /// Initialize the equator move table.
+        /// Initialize the U-edge permutation move table.
         /// </summary>
-        public static void InitializeEquatorMoveTable()
+        public static void InitializeUEdgePermutationMoveTable()
         {
-            if (EquatorMoveTable is null)
+            if (UEdgePermutationMoveTable is null)
             {
-                Console.WriteLine("Initializing equator move table");
-                EquatorMoveTable = MoveTables.CreateEquatorMoveTable();
+                Console.WriteLine("Initializing U-edge permutation move table");
+                UEdgePermutationMoveTable = MoveTables.CreateUEdgePermutationMoveTable();
             }
         }
 
         /// <summary>
-        /// Initialize the U-edges move table.
+        /// Initialize the D-edge permutation move table.
         /// </summary>
-        public static void InitializeUEdgesMoveTable()
+        public static void InitializeDEdgePermutationMoveTable()
         {
-            if (UEdgesMoveTable is null)
+            if (DEdgePermutationMoveTable is null)
             {
-                Console.WriteLine("Initializing U-edges move table");
-                UEdgesMoveTable = MoveTables.CreateUEdgesMoveTable();
-            }
-        }
-
-        /// <summary>
-        /// Initialize the D-edges move table.
-        /// </summary>
-        public static void InitializeDEdgesMoveTable()
-        {
-            if (DEdgesMoveTable is null)
-            {
-                Console.WriteLine("Initializing D-edges move table");
-                DEdgesMoveTable = MoveTables.CreateDEdgesMoveTable();
+                Console.WriteLine("Initializing D-edge permutation move table");
+                DEdgePermutationMoveTable = MoveTables.CreateDEdgePermutationMoveTable();
             }
         }
 
         /// <summary>
         /// Initialize the corner permutation move table.
         /// </summary>
-        public static void InitializeCpMoveTable()
+        public static void InitializeCornerPermutationMoveTable()
         {
-            if (CpMoveTable is null)
+            if (CornerPermutationMoveTable is null)
             {
                 Console.WriteLine("Initializing corner permutation move table");
-                CpMoveTable = MoveTables.CreateCpMoveTable();
+                CornerPermutationMoveTable = MoveTables.CreateCornerPermutationMoveTable();
             }
         }
 
         /// <summary>
-        /// Initialize the U and D edge permutation table.
+        /// Initialize the U- and D-edge order move table.
         /// </summary>
-        public static void InitializeUdEdgePermutationMoveTable()
+        public static void InitializeUdEdgeOrderMoveTable()
         {
-            if (UdEdgePermutationMoveTable is null)
+            if (UdEdgeOrderMoveTable is null)
             {
-                Console.WriteLine("Initializing U and D edge permutation move table");
-                UdEdgePermutationMoveTable = MoveTables.CreateUdEdgePermutationMoveTable();
+                Console.WriteLine("Initializing U- and D-edge order move table");
+                UdEdgeOrderMoveTable = MoveTables.CreateUdEdgeOrderMoveTable();
             }
         }
 
-        /// <summary>
-        /// Initialize the move tables for phase 1.
-        /// </summary>
-        public static void InitializePhase1MoveTables()
-        {
-            InitializeCoMoveTable();
-            InitializeEoMoveTable();
-            InitializeEquatorDistributionMoveTable();
-            InitializeEquatorMoveTable();
-        }
-
-        /// <summary>
-        /// Initialize the move tables for phase 2.
-        /// </summary>
-        public static void InitializePhase2MoveTables()
-        {
-            InitializeCpMoveTable();
-            InitializeUdEdgePermutationMoveTable();
-            InitializeEquatorMoveTable();
-            InitializeEquatorPermutationMoveTable();
-            InitializeUEdgesMoveTable();
-            InitializeDEdgesMoveTable();
-        }
-
-        //TODO handle exceptions
+        //TODO add exception handling
         /// <summary>
         /// Initialize the pruning table for phase 1.
         /// </summary>
@@ -205,7 +181,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         {
             if (Phase1PruningTable is null)
             {
-                string file = Directory + @"\phase1pruning.table";
+                string file = Directory + @"\phase1.pruningtable";
                 if (File.Exists(file))
                 {
                     Console.WriteLine("Loading phase 1 pruning table");
@@ -220,23 +196,24 @@ namespace Cubing.ThreeByThree.TwoPhase
             }
         }
 
-        //TODO handle exceptions
+        //TODO add exception handling
         /// <summary>
-        /// Initialize the pruning table for phase 2.
+        /// Initialize the corner permutation and equator order pruning table
+        /// for phase 2.
         /// </summary>
         public static void InitializePhase2CornerEquatorPruningTable()
         {
             if (Phase2CornerEquatorPruningTable is null)
             {
-                string file = Directory + @"\phase2CornerEquatorPruning.table";
+                string file = Directory + @"\phase2CornerEquator.pruningtable";
                 if (File.Exists(file))
                 {
-                    Console.WriteLine("Loading phase 2 corner permutation and equator permutation pruning table");
+                    Console.WriteLine("Loading phase 2 corner permutation and equator order pruning table");
                     Phase2CornerEquatorPruningTable = File.ReadAllBytes(file);
                 }
                 else
                 {
-                    Console.WriteLine("Initializing phase 2 corner permutation and equator permutation pruning table");
+                    Console.WriteLine("Initializing phase 2 corner permutation and equator order pruning table");
                     Phase2CornerEquatorPruningTable = PruningTables.CreatePhase2CornerEquatorTable();
                     File.WriteAllBytes(file, Phase2CornerEquatorPruningTable);
                 }
@@ -245,13 +222,14 @@ namespace Cubing.ThreeByThree.TwoPhase
 
         //TODO handle exceptions
         /// <summary>
-        /// Initialize the corner permutation and equator permutation pruning table for phase 2.
+        /// Initialize the corner permutation and equator permutation pruning
+        /// table for phase 2.
         /// </summary>
         public static void InitializePhase2CornerUdPruningTable()
         {
             if (Phase2CornerUdPruningTable is null)
             {
-                string file = Directory + @"\phase2CornerUDPruning.table";
+                string file = Directory + @"\phase2CornerUd.pruningtable";
                 if (File.Exists(file))
                 {
                     Console.WriteLine("Loading phase 2 corner permutation and U- and D-edge permutation pruning table");
@@ -264,33 +242,6 @@ namespace Cubing.ThreeByThree.TwoPhase
                     File.WriteAllBytes(file, Phase2CornerUdPruningTable);
                 }
             }
-        }
-
-        /// <summary>
-        /// Initialize the pruning tables for phase 2.
-        /// </summary>
-        public static void InitializePhase2PruningTables()
-        {
-            InitializePhase2CornerEquatorPruningTable();
-            InitializePhase2CornerUdPruningTable();
-        }
-
-        /// <summary>
-        /// Initialize the tables for phase 1.
-        /// </summary>
-        public static void InitializePhase1Tables()
-        {
-            InitializePhase1MoveTables();
-            InitializePhase1PruningTable();
-        }
-
-        /// <summary>
-        /// Initialize the tables for phase 2.
-        /// </summary>
-        public static void InitializePhase2Tables()
-        {
-            InitializePhase2MoveTables();
-            InitializePhase2PruningTables();
         }
     }
 }

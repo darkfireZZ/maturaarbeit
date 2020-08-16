@@ -11,7 +11,7 @@ namespace Cubing.ThreeByThree
         /// Get the string representation of an axis.
         /// </summary>
         /// <remarks>
-        /// See <seealso cref="AxisFromString(string)"/> to get a
+        /// See <seealso cref="AxisFromString(string)"/> to get an
         /// <see cref="Axis"/> from a string.
         /// </remarks>
         /// <param name="axis">
@@ -22,12 +22,12 @@ namespace Cubing.ThreeByThree
             => axis.ToString();
 
         /// <summary>
-        /// Maps the string representations of an axis to an
-        /// <see cref="Axis"/> enum.
+        /// Maps the string representations of an axis to an <see cref="Axis"/>
+        /// enum.
         /// </summary>
         /// <remarks>
-        /// See <seealso cref="AxisToString(Axis)"/> to get a string from
-        /// a^n <see cref="Axis"/>.
+        /// See <seealso cref="AxisToString(Axis)"/> to get a string from an
+        /// <see cref="Axis"/>.
         /// </remarks>
         /// <param name="axis">
         /// The string to get the enum representation of.
@@ -57,7 +57,7 @@ namespace Cubing.ThreeByThree
     /// <summary>
     /// All different axes of a 3x3x3 cube. x = 0, y = 1, z = 2
     /// </summary>
-    #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+    #pragma warning disable CS1591
     public enum Axis : int { x = 0, y = 1, z = 2 }
-    #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    #pragma warning restore CS1591
 }

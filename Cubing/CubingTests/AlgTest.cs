@@ -13,38 +13,26 @@ namespace CubingTests
         {
             Alg alg1 = Alg.FromEnumerable(new[] { Move.L2, Move.F1, Move.R3 });
             Alg alg2 = Alg.FromEnumerable(new[] { Move.L2, Move.F1, Move.R3 });
-            string alg3 = "L2 F R'";
             Alg nullAlg = null;
-            Alg nullString = null;
 
             Assert.IsTrue(alg1.Equals(alg1));
             Assert.IsTrue(alg1.Equals(alg2));
-            Assert.IsTrue(alg1.Equals(alg3));
             Assert.IsFalse(alg1.Equals(nullAlg));
-            Assert.IsFalse(alg1.Equals(nullString));
 
             Assert.IsTrue(Alg.AreEqual(alg1, alg1));
             Assert.IsTrue(Alg.AreEqual(alg1, alg2));
-            Assert.IsTrue(Alg.AreEqual(alg1, alg3));
             Assert.IsFalse(Alg.AreEqual(null, alg1));
-            Assert.IsFalse(Alg.AreEqual(null, alg3));
-            Assert.IsFalse(Alg.AreEqual(alg1, nullAlg));
-            Assert.IsFalse(Alg.AreEqual(alg1, nullString));
 
             #pragma warning disable CS1718 // Comparison made to same variable
             Assert.IsTrue(alg1 == alg1);
             Assert.IsTrue(alg1 == alg2);
             Assert.IsFalse(alg1 == nullAlg);
-            Assert.IsFalse(alg1 == nullString);
             Assert.IsFalse(nullAlg == alg1);
-            Assert.IsFalse(nullString == alg1);
 
             Assert.IsFalse(alg1 != alg1);
             Assert.IsFalse(alg1 != alg2);
             Assert.IsTrue(alg1 != nullAlg);
-            Assert.IsTrue(alg1 != nullString);
             Assert.IsTrue(nullAlg != alg1);
-            Assert.IsTrue(nullString != alg1);
             #pragma warning restore CS1718 // Comparison made to same variable
         }
 
@@ -271,8 +259,8 @@ namespace CubingTests
             Assert.AreEqual(Move.R1, alg[0]);
             Assert.AreEqual(Move.U2, alg[1]);
             Assert.AreEqual(Move.F3, alg[2]);
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => alg[-1]);
-            Assert.ThrowsException<ArgumentOutOfRangeException>(() => alg[4]);
+            Assert.ThrowsException<IndexOutOfRangeException>(() => alg[-1]);
+            Assert.ThrowsException<IndexOutOfRangeException>(() => alg[4]);
         }
 
         [TestMethod]

@@ -47,41 +47,39 @@ namespace Cubing.ThreeByThree.TwoPhase
 
         //TEST with impossible length
         /// <summary>
-        /// Find a solution for a <see cref="CubieCube"/> using six concurrent
-        /// threads.
+        /// Find a near-optimal solution for a cube in respect to the number of
+        /// moves. If no matching solution is found, the return value is null.
         /// </summary>
         /// <param name="cubeToSolve">The cube to solve.</param>
         /// <param name="timeout">
-        /// Interrupt the search after this number of milliseconds.
+        /// Interrupt the search after that much time has passed.
         /// </param>
         /// <param name="returnLength">
         /// The search stops as soon as a solution of the specified length is
         /// found. Be careful with setting <paramref name="returnLength"/> to a
-        /// value smaller than 20. You are allowed to do this, though there
-        /// might be no solution with your length. In that case the program
-        /// will try to find a solution which matches the given length. This
-        /// may take a VERY long time.
+        /// value smaller than 20, beacuse there might not be a solution
+        /// shorter than or matching that length. In which case the algorithm
+        /// will run for a long time.
         /// </param>
         /// <param name="requiredLength">
-        /// Ignore the timeout until a solution of a length smaller than or equal to
+        /// Ignore the timeout until a solution of a length less than or equal to
         /// <paramref name="requiredLength"/> is found. If the value of
-        /// <paramref name="requiredLength"/> is negative, this parameter is ignored
-        /// (default behaviour). If <paramref name="requiredLength"/> is not
-        /// negative it must be larger than or equal to
-        /// <paramref name="returnLength"/>. Setting the value of
-        /// <paramref name="requiredLength"/> avoids returning null. Setting the
-        /// value to 30 or higher will return the first solution found after
-        /// timeout.
+        /// <paramref name="requiredLength"/> is negative, this parameter is
+        /// ignored. If <paramref name="requiredLength"/> is positive, it must
+        /// be larger than or equal to <paramref name="returnLength"/>. Setting
+        /// the value to 30 or higher will cause the first solution found after
+        /// timeout to be returned.
         /// </param>
         /// <param name="searchDifferentOrientations">
-        /// Start 3 thread each solving a 120° offset of the cube.
+        /// Start three threads each solving a 120° offset of the cube.
         /// </param>
         /// <param name="searchInverse">
-        /// Start another thread for every orientation which solves the inverse.
+        /// For every orientation solved, start another thread that solves its
+        /// inverse.
         /// </param>
         /// <returns>
-        /// A solution for the specified cube or null if no solution is found
-        /// for the given parameters.
+        /// A near-optimal solution for the specified cube in respect to ist
+        /// length. Null, if not matching solution is found.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="cubeToSolve"/> is null.
@@ -93,15 +91,30 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// </exception>
         public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, int returnLength, int requiredLength, bool searchDifferentOrientations = true, bool searchInverse = true)
         {
+            #region parameter checks
             if (cubeToSolve is null)
                 throw new ArgumentNullException(nameof(cubeToSolve) + " is null.");
+            if (timeout < TimeSpan.Zero)
+                throw new ArgumentOutOfRangeException(nameof(timeout) + " cannot be negative: " + timeout);
             if (returnLength < 0)
                 throw new ArgumentOutOfRangeException(nameof(returnLength) + " cannot be negative: " + returnLength);
             if ((uint)requiredLength < returnLength)
                 throw new ArgumentOutOfRangeException(nameof(requiredLength) + " must either be negative or >= " + nameof(returnLength) + ": " + requiredLength + " (" + nameof(requiredLength) + ") < " + returnLength + " (" + nameof(returnLength) + ")");
+            #endregion paramter checks
 
-            TableController.InitializePhase1Tables();
-            TableController.InitializePhase2Tables();
+            //initialize move tables
+            TableController.InitializeCornerOrientationMoveTable();
+            TableController.InitializeCornerPermutationMoveTable();
+            TableController.InitializeDEdgePermutationMoveTable();
+            TableController.InitializeEdgeOrientationMoveTable();
+            TableController.InitializeEquatorPermutationMoveTable();
+            TableController.InitializeUdEdgeOrderMoveTable();
+            TableController.InitializeUEdgePermutationMoveTable();
+
+            //initialize pruning tables
+            TableController.InitializePhase1PruningTable();
+            TableController.InitializePhase2CornerEquatorPruningTable();
+            TableController.InitializePhase2CornerUdPruningTable();
 
             Stopwatch timePassed = new Stopwatch();
             timePassed.Start();
@@ -175,19 +188,19 @@ namespace Cubing.ThreeByThree.TwoPhase
             #endregion rotate cube
 
             //calculate coordinates
-            int co = Coordinates.GetCoCoord(rotatedCube);
-            int cp = Coordinates.GetCpCoord(rotatedCube);
-            int eo = Coordinates.GetEoCoord(rotatedCube);
-            int equator = Coordinates.GetEquatorCoord(rotatedCube);
-            int uEdges = Coordinates.GetUEdgeCoord(rotatedCube);
-            int dEdges = Coordinates.GetDEdgeCoord(rotatedCube);
+            int co = Coordinates.GetCornerOrientation(rotatedCube);
+            int cp = Coordinates.GetCornerPermutation(rotatedCube);
+            int eo = Coordinates.GetEdgeOrientation(rotatedCube);
+            int equator = Coordinates.GetEquatorPermutation(rotatedCube);
+            int uEdges = Coordinates.GetUEdgePermutation(rotatedCube);
+            int dEdges = Coordinates.GetDEdgePermutation(rotatedCube);
 
             //store coordinates used in phase 2
             _cp = cp;
             _uEdges = uEdges;
             _dEdges = dEdges;
 
-            int pruningIndex = PruningTables.GetPhase1PruningIndex(co, eo, equator / Coordinates.NumEquatorPermutationCoords);
+            int pruningIndex = PruningTables.GetPhase1PruningIndex(co, eo, equator / Coordinates.NumEquatorOrders);
             int minPhase1Length = TableController.Phase1PruningTable[pruningIndex];
             int maxPhase1Length = (_requiredLength > 0 && _requiredLength < GodsNumber) ? _requiredLength : GodsNumber;
 
@@ -219,10 +232,10 @@ namespace Cubing.ThreeByThree.TwoPhase
                 {
                     int move = _currentPhase1Solution[moveIndex];
 
-                    cp = TableController.CpMoveTable[cp, move];
+                    cp = TableController.CornerPermutationMoveTable[cp, move];
                 }
 
-                int cornerEquatorPruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equator;
+                int cornerEquatorPruningIndex = Coordinates.NumEquatorOrders * cp + equator;
                 int cornerEquatorPruningValue = TableController.Phase2CornerEquatorPruningTable[cornerEquatorPruningIndex];
                 if (cornerEquatorPruningValue > MaxPhase2Length)
                     return;
@@ -231,19 +244,19 @@ namespace Cubing.ThreeByThree.TwoPhase
                 {
                     int move = _currentPhase1Solution[moveIndex];
 
-                    uEdges = TableController.UEdgesMoveTable[uEdges, move];
-                    dEdges = TableController.DEdgesMoveTable[dEdges, move];
+                    uEdges = TableController.UEdgePermutationMoveTable[uEdges, move];
+                    dEdges = TableController.DEdgePermutationMoveTable[dEdges, move];
                 }
 
-                int udEdgePermutation = Coordinates.CombineUAndDEdgePermutation(uEdges, dEdges);
+                int udEdgeOrder = Coordinates.CombineUEdgePermutationAndDEdgeOrder(uEdges, dEdges % Coordinates.NumDEdgeOrders);
 
                 //prune
-                int cornerUdPruningIndex = PruningTables.GetPhase2CornerUdPruningIndex(udEdgePermutation, cp);
+                int cornerUdPruningIndex = PruningTables.GetPhase2CornerUdPruningIndex(udEdgeOrder, cp);
                 int minMoves = TableController.Phase2CornerUdPruningTable[cornerUdPruningIndex];
                 int maxMoves = Math.Min(_shortestSolutionLength.Value - depth - 1, MaxPhase2Length);
 
                 for (int length = minMoves; length <= maxMoves; length++)
-                    SearchPhase2(cp, equatorPermutation, udEdgePermutation, depth: 0, remainingMoves: length, phase1Length: depth);
+                    SearchPhase2(cp, equatorPermutation, udEdgeOrder, depth: 0, remainingMoves: length, phase1Length: depth);
 
                 return;
             }
@@ -267,12 +280,12 @@ namespace Cubing.ThreeByThree.TwoPhase
                         continue;
                 }
 
-                int newEo = TableController.EoMoveTable[eo, move];
-                int newCo = TableController.CoMoveTable[co, move];
-                int newEquator = TableController.EquatorMoveTable[equator, move];
+                int newEo = TableController.EdgeOrientationMoveTable[eo, move];
+                int newCo = TableController.CornerOrientationMoveTable[co, move];
+                int newEquator = TableController.EquatorPermutationMoveTable[equator, move];
 
                 //prune
-                int pruningCoord = PruningTables.GetPhase1PruningIndex(newCo, newEo, newEquator / Coordinates.NumEquatorPermutationCoords);
+                int pruningCoord = PruningTables.GetPhase1PruningIndex(newCo, newEo, newEquator / Coordinates.NumEquatorOrders);
                 int pruningValue = TableController.Phase1PruningTable[pruningCoord];
                 if (pruningValue > remainingMoves - 1)
                     continue;
@@ -282,7 +295,7 @@ namespace Cubing.ThreeByThree.TwoPhase
             }
         }
 
-        private void SearchPhase2(int cp, int equatorPermutation, int udEdgePermutation, int depth, int remainingMoves, int phase1Length)
+        private void SearchPhase2(int cp, int equatorPermutation, int udEdgeOrder, int depth, int remainingMoves, int phase1Length)
         {
             if (IsTerminated.Value)
                 return;
@@ -335,14 +348,14 @@ namespace Cubing.ThreeByThree.TwoPhase
                         continue;
                 }
 
-                int newCp = TableController.CpMoveTable[cp, move];
+                int newCp = TableController.CornerPermutationMoveTable[cp, move];
                 int newEquatorPermutation = TableController.EquatorPermutationMoveTable[equatorPermutation, move];
-                int newUdEdgePermutation = TableController.UdEdgePermutationMoveTable[udEdgePermutation, MoveTables.Phase1IndexToPhase2Index[move]];
+                int newUdEdgePermutation = TableController.UdEdgeOrderMoveTable[udEdgeOrder, MoveTables.Phase1IndexToPhase2Index[move]];
 
                 //prune
                 int cornerUdPruningIndex = PruningTables.GetPhase2CornerUdPruningIndex(newUdEdgePermutation, newCp);
                 int cornerUdPruningValue = TableController.Phase2CornerUdPruningTable[cornerUdPruningIndex];
-                int cornerEquatorPruningIndex = TwoPhaseConstants.NumEquatorPermutations * newCp + newEquatorPermutation;
+                int cornerEquatorPruningIndex = Coordinates.NumEquatorOrders * newCp + newEquatorPermutation;
                 int cornerEquatorPruningValue = TableController.Phase2CornerEquatorPruningTable[cornerEquatorPruningIndex];
                 if (Math.Max(cornerUdPruningValue, cornerEquatorPruningValue) > remainingMoves - 1)
                     continue;

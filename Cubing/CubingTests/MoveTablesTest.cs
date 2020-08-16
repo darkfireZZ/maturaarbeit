@@ -12,31 +12,31 @@ namespace CubingTests
         [TestMethod]
         public void CreateCoMoveTableTest()
         {
-            short[,] coMoveTable = MoveTables.CreateCoMoveTable();
+            short[,] coMoveTable = MoveTables.CreateCornerOrientationMoveTable();
 
             Assert.IsNotNull(coMoveTable);
 
-            Assert.AreEqual(coMoveTable.GetLength(0), Coordinates.NumCoCoords);
+            Assert.AreEqual(coMoveTable.GetLength(0), Coordinates.NumCornerOrientations);
             Assert.AreEqual(coMoveTable.GetLength(1), Constants.NumMoves);
 
-            for (int co = 0; co < Coordinates.NumCoCoords; co++)
+            for (int co = 0; co < Coordinates.NumCornerOrientations; co++)
                 for (int move = 0; move < Constants.NumMoves; move++)
-                    Assert.IsTrue((uint)coMoveTable[co, move] < Coordinates.NumCoCoords);
+                    Assert.IsTrue((uint)coMoveTable[co, move] < Coordinates.NumCornerOrientations);
         }
 
         [TestMethod]
         public void CreateEoMoveTableTest()
         {
-            short[,] eoMoveTable = MoveTables.CreateEoMoveTable();
+            short[,] eoMoveTable = MoveTables.CreateEdgeOrientationMoveTable();
 
             Assert.IsNotNull(eoMoveTable);
 
-            Assert.AreEqual(eoMoveTable.GetLength(0), Coordinates.NumEoCoords);
+            Assert.AreEqual(eoMoveTable.GetLength(0), Coordinates.NumEdgeOrientations);
             Assert.AreEqual(eoMoveTable.GetLength(1), Constants.NumMoves);
 
-            for (int eo = 0; eo < Coordinates.NumEoCoords; eo++)
+            for (int eo = 0; eo < Coordinates.NumEdgeOrientations; eo++)
                 for (int move = 0; move < Constants.NumMoves; move++)
-                    Assert.IsTrue((uint)eoMoveTable[eo, move] < Coordinates.NumEoCoords);
+                    Assert.IsTrue((uint)eoMoveTable[eo, move] < Coordinates.NumEdgeOrientations);
         }
 
         [TestMethod]
@@ -46,53 +46,53 @@ namespace CubingTests
 
             Assert.IsNotNull(equatorDistributionMoveTable);
 
-            Assert.AreEqual(equatorDistributionMoveTable.GetLength(0), Coordinates.NumEquatorDistributionCoords);
+            Assert.AreEqual(equatorDistributionMoveTable.GetLength(0), Coordinates.NumEquatorDistributions);
             Assert.AreEqual(equatorDistributionMoveTable.GetLength(1), Constants.NumMoves);
 
-            for (int equatorDistribution = 0; equatorDistribution < Coordinates.NumEquatorDistributionCoords; equatorDistribution++)
+            for (int equatorDistribution = 0; equatorDistribution < Coordinates.NumEquatorDistributions; equatorDistribution++)
                 for (int move = 0; move < Constants.NumMoves; move++)
-                    Assert.IsTrue((uint)equatorDistributionMoveTable[equatorDistribution, move] < Coordinates.NumEquatorDistributionCoords);
+                    Assert.IsTrue((uint)equatorDistributionMoveTable[equatorDistribution, move] < Coordinates.NumEquatorDistributions);
         }
 
         [TestMethod]
         public void CreateEquatorPermutationMoveTableTest()
         {
-            sbyte[,] equatorPermutationMoveTable = MoveTables.CreateEquatorPermutationMoveTable();
+            sbyte[,] equatorPermutationMoveTable = MoveTables.CreateEquatorOrderMoveTable();
 
             Assert.IsNotNull(equatorPermutationMoveTable);
 
-            Assert.AreEqual(equatorPermutationMoveTable.GetLength(0), Coordinates.NumEquatorPermutationCoords);
+            Assert.AreEqual(equatorPermutationMoveTable.GetLength(0), Coordinates.NumEquatorOrders);
             Assert.AreEqual(equatorPermutationMoveTable.GetLength(1), Constants.NumMoves);
         }
 
         [TestMethod]
         public void CreateCpMoveTableTest()
         {
-            ushort[,] cpMoveTable = MoveTables.CreateCpMoveTable();
+            ushort[,] cpMoveTable = MoveTables.CreateCornerPermutationMoveTable();
 
             Assert.IsNotNull(cpMoveTable);
 
-            Assert.AreEqual(cpMoveTable.GetLength(0), Coordinates.NumCpCoords);
+            Assert.AreEqual(cpMoveTable.GetLength(0), Coordinates.NumCornerPermutations);
             Assert.AreEqual(cpMoveTable.GetLength(1), Constants.NumMoves);
 
-            for (int cp = 0; cp < Coordinates.NumCpCoords; cp++)
+            for (int cp = 0; cp < Coordinates.NumCornerPermutations; cp++)
                 for (int move = 0; move < Constants.NumMoves; move++)
-                    Assert.IsTrue(cpMoveTable[cp, move] < Coordinates.NumCpCoords);
+                    Assert.IsTrue(cpMoveTable[cp, move] < Coordinates.NumCornerPermutations);
         }
 
         [TestMethod]
-        public void CreateUdEdgePermutationMoveTableTest()
+        public void CreateUdEdgeOrderMoveTableTest()
         {
-            ushort[,] udEdgePermutationMoveTable = MoveTables.CreateUdEdgePermutationMoveTable();
+            ushort[,] udEdgeOrderMoveTable = MoveTables.CreateUdEdgeOrderMoveTable();
 
-            Assert.IsNotNull(udEdgePermutationMoveTable);
+            Assert.IsNotNull(udEdgeOrderMoveTable);
 
-            Assert.AreEqual(udEdgePermutationMoveTable.GetLength(0), Coordinates.NumUdEdgePermutationCoords);
-            Assert.AreEqual(udEdgePermutationMoveTable.GetLength(1), TwoPhaseConstants.NumMovesPhase2);
+            Assert.AreEqual(udEdgeOrderMoveTable.GetLength(0), Coordinates.NumUdEdgeOrders);
+            Assert.AreEqual(udEdgeOrderMoveTable.GetLength(1), TwoPhaseConstants.NumMovesPhase2);
 
-            for (int udEdgePermutation = 0; udEdgePermutation < Coordinates.NumUdEdgePermutationCoords; udEdgePermutation++)
+            for (int udEdgeOrder = 0; udEdgeOrder < Coordinates.NumUdEdgeOrders; udEdgeOrder++)
                 foreach (Move move in TwoPhaseConstants.Phase2Moves)
-                    Assert.IsTrue(udEdgePermutationMoveTable[udEdgePermutation, MoveTables.Phase1IndexToPhase2Index[(int)move]] < Coordinates.NumUdEdgePermutationCoords);
+                    Assert.IsTrue(udEdgeOrderMoveTable[udEdgeOrder, MoveTables.Phase1IndexToPhase2Index[(int)move]] < Coordinates.NumUdEdgeOrders);
         }
 
         [TestMethod]
@@ -102,9 +102,9 @@ namespace CubingTests
             int length = 50;
             int repetitions = 50;
 
-            TableController.InitializeCoMoveTable();
-            TableController.InitializeCpMoveTable();
-            TableController.InitializeEoMoveTable();
+            TableController.InitializeCornerOrientationMoveTable();
+            TableController.InitializeCornerPermutationMoveTable();
+            TableController.InitializeEdgeOrientationMoveTable();
             TableController.InitializeEquatorDistributionMoveTable();
 
             for (int repetition = 0; repetition < repetitions; repetition++)
@@ -120,24 +120,24 @@ namespace CubingTests
 
                 for (int moveIndex = 0; moveIndex < length; moveIndex++)
                 {
-                    resultCo = TableController.CoMoveTable[resultCo, (int)randomMoves[moveIndex]];
-                    resultCp = TableController.CpMoveTable[resultCp, (int)randomMoves[moveIndex]];
-                    resultEo = TableController.EoMoveTable[resultEo, (int)randomMoves[moveIndex]];
+                    resultCo = TableController.CornerOrientationMoveTable[resultCo, (int)randomMoves[moveIndex]];
+                    resultCp = TableController.CornerPermutationMoveTable[resultCp, (int)randomMoves[moveIndex]];
+                    resultEo = TableController.EdgeOrientationMoveTable[resultEo, (int)randomMoves[moveIndex]];
                     resultEquatorDistribution = TableController.EquatorDistributionMoveTable[resultEquatorDistribution, (int)randomMoves[moveIndex]];
 
                     cube.ApplyMove(randomMoves[moveIndex]);
                 }
 
-                int expectedCo = Coordinates.GetCoCoord(cube);
+                int expectedCo = Coordinates.GetCornerOrientation(cube);
                 Assert.AreEqual(expectedCo, resultCo);
 
-                int expectedCp = Coordinates.GetCpCoord(cube);
+                int expectedCp = Coordinates.GetCornerPermutation(cube);
                 Assert.AreEqual(expectedCp, resultCp);
 
-                int expectedEo = Coordinates.GetEoCoord(cube);
+                int expectedEo = Coordinates.GetEdgeOrientation(cube);
                 Assert.AreEqual(expectedEo, resultEo);
 
-                int expectedEquatorDistribution = Coordinates.GetEquatorDistributionCoord(cube);
+                int expectedEquatorDistribution = Coordinates.GetEquatorDistribution(cube);
                 Assert.AreEqual(expectedEquatorDistribution, resultEquatorDistribution);
             }
         }
@@ -149,38 +149,39 @@ namespace CubingTests
             int length = 50;
             int repetitions = 50;
 
-            TableController.InitializeUdEdgePermutationMoveTable();
-            TableController.InitializeEquatorPermutationMoveTable();
+            TableController.InitializeUdEdgeOrderMoveTable();
+            TableController.InitializeEquatorOrderMoveTable();
 
             double[] moveProbabilities = {
                 0d, 1d, 0d, 1d, 1d, 1d, 0d, 1d, 0d,
-                0d, 1d, 0d, 1d, 1d, 1d, 0d, 1d, 0d };
+                0d, 1d, 0d, 1d, 1d, 1d, 0d, 1d, 0d
+            };
 
             int expectedEquatorPermutation;
             for (int repetition = 0; repetition < repetitions; repetition++)
             {
                 Alg randomMoves = Alg.FromRandomMoves(length, random, moveProbabilities);
 
-                int resultUdEdgePermutation = 0;
+                int resultUdEdgeOrder = 0;
                 int resultEquatorPermutation = 0;
 
                 CubieCube cube = CubieCube.CreateSolved();
 
                 for (int moveIndex = 0; moveIndex < length; moveIndex++)
                 {
-                    resultUdEdgePermutation = TableController.UdEdgePermutationMoveTable[resultUdEdgePermutation, MoveTables.Phase1IndexToPhase2Index[(int)randomMoves[moveIndex]]];
-                    resultEquatorPermutation = TableController.EquatorPermutationMoveTable[resultEquatorPermutation, (int)randomMoves[moveIndex]];
+                    resultUdEdgeOrder = TableController.UdEdgeOrderMoveTable[resultUdEdgeOrder, MoveTables.Phase1IndexToPhase2Index[(int)randomMoves[moveIndex]]];
+                    resultEquatorPermutation = TableController.EquatorOrderMoveTable[resultEquatorPermutation, (int)randomMoves[moveIndex]];
 
                     cube.ApplyMove(randomMoves[moveIndex]);
 
-                    expectedEquatorPermutation = Coordinates.GetEquatorPermutationCoord(cube);
+                    expectedEquatorPermutation = Coordinates.GetEquatorOrder(cube);
                     Assert.AreEqual(expectedEquatorPermutation, resultEquatorPermutation);
                 }
 
-                int expectedUdEdgePermutation = Coordinates.GetUdEdgePermutationCoord(cube);
-                Assert.AreEqual(expectedUdEdgePermutation, resultUdEdgePermutation);
+                int expectedUdEdgeOrder = Coordinates.GetUdEdgeOrder(cube);
+                Assert.AreEqual(expectedUdEdgeOrder, resultUdEdgeOrder);
 
-                expectedEquatorPermutation = Coordinates.GetEquatorPermutationCoord(cube);
+                expectedEquatorPermutation = Coordinates.GetEquatorOrder(cube);
                 Assert.AreEqual(expectedEquatorPermutation, resultEquatorPermutation);
             }
         }

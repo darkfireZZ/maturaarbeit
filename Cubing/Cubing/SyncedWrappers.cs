@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Cubing
+﻿namespace Cubing
 {
     public class SyncedIntWrapper
     {
@@ -29,9 +25,9 @@ namespace Cubing
     {
         private static object _lockObject = new object();
 
-        private double _value = default;
+        private float _value = default;
 
-        public double Value
+        public float Value
         {
             get
             {

@@ -106,10 +106,10 @@ namespace CubingTests
             for (int iteration = 0; iteration < numIterations; iteration++)
             {
                 CubieCube cube = CubieCube.CreateRandom(random);
-                int cornerPermutation = Coordinates.GetCpCoord(cube);
-                int edgePermutation   = Coordinates.GetEpCoord(cube);
-                bool cornerParity = Coordinates.CpCoordinateParity(cornerPermutation);
-                bool edgeParity   = Coordinates.EpCoordinateParity(edgePermutation);
+                int cornerPermutation = Coordinates.GetCornerPermutation(cube);
+                int edgePermutation   = Coordinates.GetEdgePermutation(cube);
+                bool cornerParity = Coordinates.CornerPermutationParity(cornerPermutation);
+                bool edgeParity   = Coordinates.EdgePermutationParity(edgePermutation);
                 Assert.IsTrue(cornerParity == edgeParity);
 
                 Assert.IsNotNull(TwoPhaseSolver.FindSolution(cube, timeout, 30, -1));
@@ -141,24 +141,24 @@ namespace CubingTests
         {
             //CP
             MoveReplacementTest((expected, result) =>
-                CollectionAssert.AreEqual(expected.CP, result.CP));
+                CollectionAssert.AreEqual(expected.CornerPermutation, result.CornerPermutation));
             SexyMoveTest((expected, result) =>
-                CollectionAssert.AreEqual(expected.CP, result.CP));
+                CollectionAssert.AreEqual(expected.CornerPermutation, result.CornerPermutation));
             //CO
             MoveReplacementTest((expected, result) =>
-                CollectionAssert.AreEqual(expected.CO, result.CO));
+                CollectionAssert.AreEqual(expected.CornerOrientation, result.CornerOrientation));
             SexyMoveTest((expected, result) =>
-                CollectionAssert.AreEqual(expected.CO, result.CO));
+                CollectionAssert.AreEqual(expected.CornerOrientation, result.CornerOrientation));
             //EP
             MoveReplacementTest((expected, result) =>
-                CollectionAssert.AreEqual(expected.EP, result.EP));
+                CollectionAssert.AreEqual(expected.EdgePermutation, result.EdgePermutation));
             SexyMoveTest((expected, result) =>
-                CollectionAssert.AreEqual(expected.EP, result.EP));
+                CollectionAssert.AreEqual(expected.EdgePermutation, result.EdgePermutation));
             //EO
             MoveReplacementTest((expected, result) =>
-                CollectionAssert.AreEqual(expected.EO, result.EO));
+                CollectionAssert.AreEqual(expected.EdgeOrientation, result.EdgeOrientation));
             SexyMoveTest((expected, result) =>
-                CollectionAssert.AreEqual(expected.EO, result.EO));
+                CollectionAssert.AreEqual(expected.EdgeOrientation, result.EdgeOrientation));
         }
 
         [TestMethod]
@@ -260,17 +260,17 @@ namespace CubingTests
 
             Assert.IsTrue(cube == clone);
 
-            CollectionAssert.AreEqual(cube.CP, clone.CP);
-            CollectionAssert.AreEqual(cube.CO, clone.CO);
-            CollectionAssert.AreEqual(cube.EO, clone.EO);
-            CollectionAssert.AreEqual(cube.EP, clone.EP);
+            CollectionAssert.AreEqual(cube.CornerPermutation, clone.CornerPermutation);
+            CollectionAssert.AreEqual(cube.CornerOrientation, clone.CornerOrientation);
+            CollectionAssert.AreEqual(cube.EdgeOrientation, clone.EdgeOrientation);
+            CollectionAssert.AreEqual(cube.EdgePermutation, clone.EdgePermutation);
 
             Assert.IsFalse(ReferenceEquals(cube, clone));
 
-            Assert.IsFalse(ReferenceEquals(cube.CP, clone.CP));
-            Assert.IsFalse(ReferenceEquals(cube.CO, clone.CO));
-            Assert.IsFalse(ReferenceEquals(cube.EO, clone.EO));
-            Assert.IsFalse(ReferenceEquals(cube.EP, clone.EP));
+            Assert.IsFalse(ReferenceEquals(cube.CornerPermutation, clone.CornerPermutation));
+            Assert.IsFalse(ReferenceEquals(cube.CornerOrientation, clone.CornerOrientation));
+            Assert.IsFalse(ReferenceEquals(cube.EdgeOrientation, clone.EdgeOrientation));
+            Assert.IsFalse(ReferenceEquals(cube.EdgePermutation, clone.EdgePermutation));
         }
 
         [TestMethod]

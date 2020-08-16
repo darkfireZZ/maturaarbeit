@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cubing.ThreeByThree.TwoPhase;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Cubing.ThreeByThree.Constants;
@@ -83,10 +84,10 @@ namespace Cubing.ThreeByThree
         public static CubieCube CreateSolved()
             => new CubieCube()
             {
-                CP = (Corner[])CubieCube.SolvedCP.Clone(),
-                CO = (int[])CubieCube.SolvedCO.Clone(),
-                EP = (Edge[])CubieCube.SolvedEP.Clone(),
-                EO = (int[])CubieCube.SolvedEO.Clone(),
+                CornerPermutation = (Corner[])CubieCube.SolvedCP.Clone(),
+                CornerOrientation = (int[])CubieCube.SolvedCO.Clone(),
+                EdgePermutation = (Edge[])CubieCube.SolvedEP.Clone(),
+                EdgeOrientation = (int[])CubieCube.SolvedEO.Clone(),
                 Centers = (Face[])CubieCube.SolvedCenters.Clone()
             };
 
@@ -104,13 +105,13 @@ namespace Cubing.ThreeByThree
             if (random is null)
                 throw new ArgumentNullException(nameof(random) + " is null.");
 
-            int co = random.Next(0, Coordinates.NumCoCoords);
-            int eo = random.Next(0, Coordinates.NumEoCoords);
+            int co = random.Next(0, Coordinates.NumCornerOrientations);
+            int eo = random.Next(0, Coordinates.NumEdgeOrientations);
 
             //only cubes with even parity are solvable
-            int cp = random.Next(0, Coordinates.NumCpCoords);
-            int ep = random.Next(0, Coordinates.NumEpCoords);
-            bool oddParity = Coordinates.CpCoordinateParity(cp) != Coordinates.EpCoordinateParity(ep);
+            int cp = random.Next(0, Coordinates.NumCornerPermutations);
+            int ep = random.Next(0, Coordinates.NumEdgePermutations);
+            bool oddParity = Coordinates.CornerPermutationParity(cp) != Coordinates.EdgePermutationParity(ep);
             if (oddParity)
             {
                 if ((cp & 0b1) == 1)
@@ -121,17 +122,17 @@ namespace Cubing.ThreeByThree
 
             CubieCube returnValue = new CubieCube()
             {
-                CO = new int[NumCorners],
-                CP = new Corner[NumCorners],
-                EO = new int[NumEdges],
-                EP = new Edge[NumEdges],
+                CornerOrientation = new int[NumCorners],
+                CornerPermutation = new Corner[NumCorners],
+                EdgeOrientation = new int[NumEdges],
+                EdgePermutation = new Edge[NumEdges],
                 Centers = (Face[])CubieCube.SolvedCenters.Clone()
             };
 
-            Coordinates.SetCoCoord(returnValue, co);
-            Coordinates.SetCpCoord(returnValue, cp);
-            Coordinates.SetEoCoord(returnValue, eo);
-            Coordinates.SetEpCoord(returnValue, ep);
+            Coordinates.SetCornerOrientation(returnValue, co);
+            Coordinates.SetCornerPermutation(returnValue, cp);
+            Coordinates.SetEdgeOrientation(returnValue, eo);
+            Coordinates.SetEdgePermutation(returnValue, ep);
 
             return returnValue;
         }
@@ -204,10 +205,10 @@ namespace Cubing.ThreeByThree
 
             return new CubieCube()
             {
-                CP = (Corner[])cp.Clone(),
-                CO = (int[])co.Clone(),
-                EP = (Edge[])ep.Clone(),
-                EO = (int[])eo.Clone(),
+                CornerPermutation = (Corner[])cp.Clone(),
+                CornerOrientation = (int[])co.Clone(),
+                EdgePermutation = (Edge[])ep.Clone(),
+                EdgeOrientation = (int[])eo.Clone(),
                 Centers = (Face[])centers.Clone(),
                 IsMirrored = isMirrored
             };
@@ -443,19 +444,19 @@ namespace Cubing.ThreeByThree
         /// <summary>
         /// Stores the corner permutation state of the cube.
         /// </summary>
-        public Corner[] CP { get; set; } = null;
+        public Corner[] CornerPermutation { get; set; } = null;
         /// <summary>
         /// Stores the corner orientation state of the cube.
         /// </summary>
-        public int[] CO { get; set; } = null;
+        public int[] CornerOrientation { get; set; } = null;
         /// <summary>
         /// Stores the edge permutation state of the cube.
         /// </summary>
-        public Edge[] EP { get; set; } = null;
+        public Edge[] EdgePermutation { get; set; } = null;
         /// <summary>
         /// Stores the edge orientation state of the cube.
         /// </summary>
-        public int[] EO { get; set; } = null;
+        public int[] EdgeOrientation { get; set; } = null;
         /// <summary>
         /// Stores the center permutation state of the cube.
         /// </summary>
@@ -500,17 +501,17 @@ namespace Cubing.ThreeByThree
             int[] newCO = new int[NumCorners];
             for (int corner = 0; corner < NumCorners; corner++)
             {
-                newCP[corner] = this.CP[(int)cube.CP[corner]];
-                newCO[corner] = this.CO[(int)cube.CP[corner]];
+                newCP[corner] = this.CornerPermutation[(int)cube.CornerPermutation[corner]];
+                newCO[corner] = this.CornerOrientation[(int)cube.CornerPermutation[corner]];
                 //TODO understand
                 if (this.IsMirrored)
-                    newCO[corner] = (3 + newCO[corner] - cube.CO[corner]) % 3;
+                    newCO[corner] = (3 + newCO[corner] - cube.CornerOrientation[corner]) % 3;
                 else
-                    newCO[corner] = (newCO[corner] + cube.CO[corner]) % 3;
+                    newCO[corner] = (newCO[corner] + cube.CornerOrientation[corner]) % 3;
             }
             this.IsMirrored ^= cube.IsMirrored;
-            this.CP = newCP;
-            this.CO = newCO;
+            this.CornerPermutation = newCP;
+            this.CornerOrientation = newCO;
         }
 
         /// <summary>
@@ -528,12 +529,12 @@ namespace Cubing.ThreeByThree
             int[] newEO = new int[NumEdges];
             for (int edge = 0; edge < NumEdges; edge++)
             {
-                newEP[edge] = this.EP[(int)cube.EP[edge]];
-                newEO[edge] = this.EO[(int)cube.EP[edge]];
-                newEO[edge] = (newEO[edge] + cube.EO[edge]) % 2;
+                newEP[edge] = this.EdgePermutation[(int)cube.EdgePermutation[edge]];
+                newEO[edge] = this.EdgeOrientation[(int)cube.EdgePermutation[edge]];
+                newEO[edge] = (newEO[edge] + cube.EdgeOrientation[edge]) % 2;
             }
-            this.EP = newEP;
-            this.EO = newEO;
+            this.EdgePermutation = newEP;
+            this.EdgeOrientation = newEO;
         }
 
         /// <summary>
@@ -587,27 +588,27 @@ namespace Cubing.ThreeByThree
         {
             Edge[] newEp = new Edge[NumEdges];
             for (int edge = 0; edge < NumEdges; edge++)
-                newEp[(int)this.EP[edge]] = (Edge)edge;
+                newEp[(int)this.EdgePermutation[edge]] = (Edge)edge;
 
             int[] newEo = new int[NumEdges];
             for (int edge = 0; edge < NumEdges; edge++)
-                newEo[edge] = this.EO[(int)newEp[edge]];
+                newEo[edge] = this.EdgeOrientation[(int)newEp[edge]];
 
             Corner[] newCp = new Corner[NumEdges];
             for (int corner = 0; corner < NumCorners; corner++)
-                newCp[(int)this.CP[corner]] = (Corner)corner;
+                newCp[(int)this.CornerPermutation[corner]] = (Corner)corner;
 
             int[] newCo = new int[NumCorners];
             for (int corner = 0; corner < NumCorners; corner++)
             {
-                int co = this.CO[(int)newCp[corner]];
+                int co = this.CornerOrientation[(int)newCp[corner]];
                 newCo[corner] = (co == 0 ? 0 : 3 - co);
             }
 
-            this.EP = newEp;
-            this.EO = newEo;
-            this.CP = newCp;
-            this.CO = newCo;
+            this.EdgePermutation = newEp;
+            this.EdgeOrientation = newEo;
+            this.CornerPermutation = newCp;
+            this.CornerOrientation = newCo;
         }
 
         /// <summary>
@@ -641,10 +642,10 @@ namespace Cubing.ThreeByThree
         {
             if (other is null)
                 return false;
-            return Enumerable.SequenceEqual(this.CP, other.CP) &&
-                   Enumerable.SequenceEqual(this.CO, other.CO) &&
-                   Enumerable.SequenceEqual(this.EP, other.EP) &&
-                   Enumerable.SequenceEqual(this.EO, other.EO) &&
+            return Enumerable.SequenceEqual(this.CornerPermutation, other.CornerPermutation) &&
+                   Enumerable.SequenceEqual(this.CornerOrientation, other.CornerOrientation) &&
+                   Enumerable.SequenceEqual(this.EdgePermutation, other.EdgePermutation) &&
+                   Enumerable.SequenceEqual(this.EdgeOrientation, other.EdgeOrientation) &&
                    Enumerable.SequenceEqual(this.Centers, other.Centers) &&
                    this.IsMirrored == other.IsMirrored;
         }
@@ -677,10 +678,10 @@ namespace Cubing.ThreeByThree
         public override string ToString()
         {
             return
-                "CP: " + string.Join(" ", this.CP) + ", " +
-                "CO: " + string.Join(" ", this.CO) + ", " +
-                "EP: " + string.Join(" ", this.EP) + ", " +
-                "EO: " + string.Join(" ", this.EO) + ", " +
+                "CP: " + string.Join(" ", this.CornerPermutation) + ", " +
+                "CO: " + string.Join(" ", this.CornerOrientation) + ", " +
+                "EP: " + string.Join(" ", this.EdgePermutation) + ", " +
+                "EO: " + string.Join(" ", this.EdgeOrientation) + ", " +
                 "Centers: " + string.Join(" ", this.Centers);
         }
 
@@ -691,10 +692,10 @@ namespace Cubing.ThreeByThree
         public CubieCube Clone()
             => new CubieCube()
             {
-                CP = (Corner[])this.CP.Clone(),
-                CO = (int[])this.CO.Clone(),
-                EP = (Edge[])this.EP.Clone(),
-                EO = (int[])this.EO.Clone(),
+                CornerPermutation = (Corner[])this.CornerPermutation.Clone(),
+                CornerOrientation = (int[])this.CornerOrientation.Clone(),
+                EdgePermutation = (Edge[])this.EdgePermutation.Clone(),
+                EdgeOrientation = (int[])this.EdgeOrientation.Clone(),
                 Centers = (Face[])this.Centers.Clone(),
                 IsMirrored = this.IsMirrored
             };

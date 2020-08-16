@@ -39,12 +39,9 @@ namespace Cubing.ThreeByThree
             {
                 for (int axis = 0; axis < NumAxes; axis++)
                 {
-                    _rotateArray[face, axis * 3] =
-                        rotateByOne[face, axis];
-                    _rotateArray[face, axis * 3 + 1] =
-                        rotateByOne[(int)_rotateArray[face, axis * 3], axis];
-                    _rotateArray[face, axis * 3 + 2] =
-                        rotateByOne[(int)_rotateArray[face, axis * 3 + 1], axis];
+                    _rotateArray[face, axis * 3] = rotateByOne[face, axis];
+                    _rotateArray[face, axis * 3 + 1] = rotateByOne[(int)_rotateArray[face, axis * 3], axis];
+                    _rotateArray[face, axis * 3 + 2] = rotateByOne[(int)_rotateArray[face, axis * 3 + 1], axis];
                 }
             }
         }
@@ -86,6 +83,7 @@ namespace Cubing.ThreeByThree
         {
             if (face is null)
                 throw new ArgumentNullException(nameof(face) + " is null.");
+
             try { return _stringToFaceDict[face]; }
             catch (KeyNotFoundException exception)
             {
@@ -130,7 +128,7 @@ namespace Cubing.ThreeByThree
     /// All different faces of a 3x3x3 cube. R = 0, U = 1, F = 2, L = 3,
     /// D = 4, B = 4
     /// </summary>
-    #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+    #pragma warning disable CS1591
     public enum Face : int { R = 0, U = 1, F = 2, L = 3, D = 4, B = 5 }
-    #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+    #pragma warning restore CS1591
 }

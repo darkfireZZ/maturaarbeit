@@ -1,42 +1,50 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using static Cubing.ThreeByThree.Constants;
 
 namespace Cubing.ThreeByThree.TwoPhase
 {
     /// <summary>
-    /// Contains utilities for manipultion of cubes with symmetries.
+    /// Contains utilities related to symmetries.
     /// </summary>
     public static class Symmetries
     {
         /// <summary>
-        /// The number of posiible symmetries of a 3x3x3 cube.
+        /// The number of possible symmetries of a 3x3x3 cube.
         /// </summary>
         public const int NumSymmetries = 48;
 
         /// <summary>
-        /// The 48 possible symmetries represented as
-        /// <see cref="CubieCube"/>s. Do not change.
+        /// The number of symmetries in the subgroup Dh4.
+        /// </summary>
+        public const int NumSymmetriesDh4 = NumSymmetries / 3; //16
+
+        /// <summary>
+        /// The 48 possible symmetries represented as <see cref="CubieCube"/>s.
+        /// Do not change.
         /// </summary>
         public static readonly CubieCube[] SymmetryCubes = null;
         /// <summary>
-        /// <c><see cref="MultiplyIndex"/>[i, k]</c> is
-        /// the product of the two symmetries represented by the indexes
-        /// <c>i</c> and <c>k</c>. Do not change.
+        /// <c><see cref="MultiplyIndex"/>[i, k]</c> is the product of the two
+        /// symmetries represented by the indexes <c>i</c> and <c>k</c>. Do not
+        /// change.
         /// </summary>
         public static readonly int[,] MultiplyIndex = null;
         /// <summary>
-        /// <c><see cref="MultiplyIndex"/>[i]</c> is the inverse of the cube
-        /// represented by <c>i</c>. Do not change.
+        /// <c><see cref="InverseIndex"/>[i]</c> is the symmetry index inverse
+        /// of the symmetry cube represented by the index <c>i</c>. Do not
+        /// change.
         /// </summary>
         public static readonly int[] InverseIndex = null;
         /// <summary>
-        /// <c><see cref="RotationIndex"/>[r]</c> is the index of the cube
-        /// that represents the rotation <c>r</c>. Do not change.
+        /// <c><see cref="RotationIndex"/>[r]</c> is the symmetry index of the cube
+        /// that represents the <see cref="Rotation"/> <c>r</c>. Do not change.
         /// </summary>
         public static readonly int[] RotationIndex = null;
         /// <summary>
-        /// <c><see cref="MirrorIndex"/>[a]</c> is the index of the cube
-        /// that represents the mirror <c>a</c>. Do not change.
+        /// <c><see cref="MirrorIndex"/>[a]</c> is the symmetry index of the
+        /// cube that represents the mirror through the <see cref="Axis"/>
+        /// <c>a</c>. Do not change.
         /// </summary>
         public static readonly int[] MirrorIndex = null;
 
@@ -45,16 +53,17 @@ namespace Cubing.ThreeByThree.TwoPhase
             CubieCube cube; //avoid name clashes
 
             #region initialize SymmetryCubes
-            SymmetryCubes = new CubieCube[NumSymmetries];
+            SymmetryCubes = Enumerable.Repeat<CubieCube>(null, NumSymmetries)
+                                      .ToArray();
             cube = CubieCube.CreateSolved();
 
-            for (int x1y1 = 0; x1y1 < 3; x1y1++)
+            for (int x1y1 = 0; x1y1 < 3; x1y1++) //rotate by 120°
             {
-                for (int z2 = 0; z2 < 2; z2++)
+                for (int z2 = 0; z2 < 2; z2++) //rotate by 180°
                 {
-                    for (int y1 = 0; y1 < 4; y1++)
+                    for (int y1 = 0; y1 < 4; y1++) //rotate by 90°
                     {
-                        for (int mirror = 0; mirror < 2; mirror++)
+                        for (int mirror = 0; mirror < 2; mirror++) //mirror
                         {
                             int index = (x1y1 << 4) + (z2 << 3) + (y1 << 1) + mirror;
                             SymmetryCubes[index] = cube.Clone();
@@ -71,21 +80,23 @@ namespace Cubing.ThreeByThree.TwoPhase
 
             #region initialize MultiplyIndex
             MultiplyIndex = new int[NumSymmetries, NumSymmetries];
-            for (int t1 = 0; t1 < NumSymmetries; t1++)
-                for (int t2 = 0; t2 < NumSymmetries; t2++)
-                    MultiplyIndex[t1, t2] = -1;
 
-            for (int t1 = 0; t1 < NumSymmetries; t1++)
-                for (int t2 = 0; t2 < NumSymmetries; t2++)
+            //invalidate
+            for (int symmetryIndex1 = 0; symmetryIndex1 < NumSymmetries; symmetryIndex1++)
+                for (int symmetryIndex2 = 0; symmetryIndex2 < NumSymmetries; symmetryIndex2++)
+                    MultiplyIndex[symmetryIndex1, symmetryIndex2] = -1;
+
+            //populate
+            for (int symmetryIndex1 = 0; symmetryIndex1 < NumSymmetries; symmetryIndex1++)
+                for (int symmetryIndex2 = 0; symmetryIndex2 < NumSymmetries; symmetryIndex2++)
                 {
-                    cube = SymmetryCubes[t1].Clone();
-                    cube.Multiply(SymmetryCubes[t2]);
-                    for (int prodIndex = 0; prodIndex < NumSymmetries;
-                        prodIndex++)
+                    cube = SymmetryCubes[symmetryIndex1].Clone();
+                    cube.Multiply(SymmetryCubes[symmetryIndex2]);
+                    for (int productIndex = 0; productIndex < NumSymmetries; productIndex++)
                     {
-                        if (cube == SymmetryCubes[prodIndex])
+                        if (cube == SymmetryCubes[productIndex])
                         {
-                            MultiplyIndex[t1, t2] = prodIndex;
+                            MultiplyIndex[symmetryIndex1, symmetryIndex2] = productIndex;
                             break;
                         }
                     }
@@ -93,19 +104,19 @@ namespace Cubing.ThreeByThree.TwoPhase
             #endregion MultiplyIndex
 
             #region initialize InverseIndex
-            InverseIndex = Enumerable.Repeat(-1, NumSymmetries).ToArray();
+            InverseIndex = Enumerable.Repeat(-1, NumSymmetries)
+                                     .ToArray();
             
-            for (int inverseIndex = 0; inverseIndex < NumSymmetries;
-                inverseIndex++)
+            for (int inverseIndex = 0; inverseIndex < NumSymmetries; inverseIndex++)
             {
-                CubieCube inverseCube = Symmetries.SymmetryCubes[inverseIndex];
-                for (int index = 0; index < NumSymmetries; index++)
+                CubieCube inverseCube = SymmetryCubes[inverseIndex];
+                for (int symmetryIndex = 0; symmetryIndex < NumSymmetries; symmetryIndex++)
                 {
-                    cube = SymmetryCubes[index].Clone();
+                    cube = SymmetryCubes[symmetryIndex].Clone();
                     cube.Multiply(inverseCube);
                     if (cube == CubieCube.CreateSolved())
                     {
-                        InverseIndex[index] = inverseIndex;
+                        InverseIndex[symmetryIndex] = inverseIndex;
                         break;
                     }
                 }
@@ -113,31 +124,33 @@ namespace Cubing.ThreeByThree.TwoPhase
             #endregion initialize InverseIndex
 
             #region initialize RotationIndex
-            RotationIndex = Enumerable.Repeat(-1, NumRotations).ToArray();
+            RotationIndex = Enumerable.Repeat(-1, NumRotations)
+                                      .ToArray();
 
-            for (int rotation = 0; rotation < NumRotations; rotation++)
+            foreach (Rotation rotation in Enum.GetValues(typeof(Rotation)))
             {
-                cube = CubieCube.RotationsArray[rotation];
-                for (int t = 0; t < NumSymmetries; t++)
-                    if (cube == SymmetryCubes[t])
+                cube = CubieCube.RotationsArray[(int)rotation];
+                for (int symmetryIndex = 0; symmetryIndex < NumSymmetries; symmetryIndex++)
+                    if (cube == SymmetryCubes[symmetryIndex])
                     {
-                        RotationIndex[rotation] = t;
+                        RotationIndex[(int)rotation] = symmetryIndex;
                         break;
                     }
             }
             #endregion initialize RotationIndex
 
             #region initialize MirrorIndex
-            MirrorIndex = Enumerable.Repeat(-1, NumAxes).ToArray();
+            MirrorIndex = Enumerable.Repeat(-1, NumAxes)
+                                    .ToArray();
 
-            for (int axis = 0; axis < NumAxes; axis++)
+            foreach (Axis axis in Enum.GetValues(typeof(Axis)))
             {
                 cube = CubieCube.CreateSolved();
-                cube.Mirror((Axis)axis);
-                for (int t = 0; t < NumSymmetries; t++)
-                    if (cube == SymmetryCubes[t])
+                cube.Mirror(axis);
+                for (int symmetryIndex = 0; symmetryIndex < NumSymmetries; symmetryIndex++)
+                    if (cube == SymmetryCubes[symmetryIndex])
                     {
-                        MirrorIndex[axis] = t;
+                        MirrorIndex[(int)axis] = symmetryIndex;
                         break;
                     }
             }

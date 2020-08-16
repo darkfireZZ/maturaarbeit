@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using static Cubing.ThreeByThree.Coordinates;
+using static Cubing.ThreeByThree.TwoPhase.Coordinates;
 
 namespace Cubing.ThreeByThree.TwoPhase
 {
@@ -9,13 +9,14 @@ namespace Cubing.ThreeByThree.TwoPhase
     public static class WeightedPruningTables
     {
         /// <summary>
-        /// Create a weighted pruning table using the corner permutation and
-        /// equator edge permutation.
+        /// Create a weighted pruning table using corner permutation and
+        /// equator edge order. Every table entry contains the minimum cost
+        /// required to solve the position represented by said coordinates.
         /// </summary>
-        /// <param name="weights">The weights of the moves.</param>
+        /// <param name="weights">The weights to use.</param>
         /// <returns>
         /// A weighted pruning table using the corner permutation and equator
-        /// edge permutation.
+        /// edge order.
         /// </returns>
         /// <exception cref="InvalidWeightsException">
         /// Thrown if <paramref name="weights"/> is invalid.
@@ -27,11 +28,11 @@ namespace Cubing.ThreeByThree.TwoPhase
             float invalid = float.NaN;
 
             float[] pruningTable = Enumerable
-                .Repeat(invalid, TwoPhaseConstants.CornerEquatorPruningTableSizePhase2)
+                .Repeat(invalid, PruningTableConstants.CornerEquatorPruningTableSizePhase2)
                 .ToArray();
 
-            TableController.InitializeCpMoveTable();
-            TableController.InitializeEquatorPermutationMoveTable();
+            TableController.InitializeCornerPermutationMoveTable();
+            TableController.InitializeEquatorOrderMoveTable();
 
             pruningTable[0] = 0f;
             int numChanged = -1;
@@ -39,18 +40,18 @@ namespace Cubing.ThreeByThree.TwoPhase
             while (numChanged != 0)
             {
                 numChanged = 0;
-                for (int cp = 0; cp < NumCpCoords; cp++)
+                for (int cornerPermutation = 0; cornerPermutation < NumCornerPermutations; cornerPermutation++)
                 {
-                    for (int equatorPermutation = 0; equatorPermutation < TwoPhaseConstants.NumEquatorPermutations; equatorPermutation++)
+                    for (int equatorOrder = 0; equatorOrder < NumEquatorOrders; equatorOrder++)
                     {
-                        int index = TwoPhaseConstants.NumEquatorPermutations * cp + equatorPermutation;
+                        int index = NumEquatorOrders * cornerPermutation + equatorOrder;
                         if (pruningTable[index] != invalid)
                         {
                             foreach (int move in TwoPhaseConstants.Phase2Moves)
                             {
-                                int newCp = TableController.CpMoveTable[cp, move];
-                                int newEquatorPermutation = TableController.EquatorPermutationMoveTable[equatorPermutation, move];
-                                int newIndex = TwoPhaseConstants.NumEquatorPermutations * newCp + newEquatorPermutation;
+                                int newCornerPermutation = TableController.CornerPermutationMoveTable[cornerPermutation, move];
+                                int newEquatorOrder = TableController.EquatorOrderMoveTable[equatorOrder, move];
+                                int newIndex = NumEquatorOrders * newCornerPermutation + newEquatorOrder;
 
                                 float newPruningValue = pruningTable[index] + weights[move];
 
@@ -68,14 +69,16 @@ namespace Cubing.ThreeByThree.TwoPhase
             return pruningTable;
         }
 
+        //Not used
         /// <summary>
-        /// Create a weighted pruning table using the U- and D-edge permutation
-        /// and equator edge permutation.
+        /// Create a weighted pruning table using U- and D-edge order and
+        /// equator edge order. Every table entry contains the minimum cost
+        /// required to solve the position represented by said coordinates.
         /// </summary>
-        /// <param name="weights">The weights of the moves.</param>
+        /// <param name="weights">The weights to use.</param>
         /// <returns>
-        /// A weighted pruning table using the U- and D-edge permutation and
-        /// equator edge permutation.
+        /// A weighted pruning table using U- and D-edge order and equator edge
+        /// order.
         /// </returns>
         /// <exception cref="InvalidWeightsException">
         /// Thrown if <paramref name="weights"/> is invalid.
@@ -87,11 +90,11 @@ namespace Cubing.ThreeByThree.TwoPhase
             float invalid = float.NaN;
 
             float[] pruningTable = Enumerable
-                .Repeat(invalid, TwoPhaseConstants.UdEquatorPruningTableSizePhase2)
+                .Repeat(invalid, PruningTableConstants.UdEquatorPruningTableSizePhase2)
                 .ToArray();
 
-            TableController.InitializeUdEdgePermutationMoveTable();
-            TableController.InitializeEquatorPermutationMoveTable();
+            TableController.InitializeUdEdgeOrderMoveTable();
+            TableController.InitializeEquatorOrderMoveTable();
 
             pruningTable[0] = 0f;
             int numChanged = -1;
@@ -99,18 +102,18 @@ namespace Cubing.ThreeByThree.TwoPhase
             while (numChanged != 0)
             {
                 numChanged = 0;
-                for (int udEdgePermutation = 0; udEdgePermutation < NumUdEdgePermutationCoords; udEdgePermutation++)
+                for (int udEdgeOrder = 0; udEdgeOrder < NumUdEdgeOrders; udEdgeOrder++)
                 {
-                    for (int equatorPermutation = 0; equatorPermutation < TwoPhaseConstants.NumEquatorPermutations; equatorPermutation++)
+                    for (int equatorOrder = 0; equatorOrder < NumEquatorOrders; equatorOrder++)
                     {
-                        int index = TwoPhaseConstants.NumEquatorPermutations * udEdgePermutation + equatorPermutation;
+                        int index = NumEquatorOrders * udEdgeOrder + equatorOrder;
                         if (pruningTable[index] != invalid)
                         {
                             foreach (int move in TwoPhaseConstants.Phase2Moves)
                             {
-                                int newUdEdgePermutation = TableController.UdEdgePermutationMoveTable[udEdgePermutation, MoveTables.Phase1IndexToPhase2Index[move]];
-                                int newEquatorPermutation = TableController.EquatorPermutationMoveTable[equatorPermutation, move];
-                                int newIndex = TwoPhaseConstants.NumEquatorPermutations * newUdEdgePermutation + newEquatorPermutation;
+                                int newUdEdgeOrder = TableController.UdEdgeOrderMoveTable[udEdgeOrder, MoveTables.Phase1IndexToPhase2Index[move]];
+                                int newEquatorOrder = TableController.EquatorOrderMoveTable[equatorOrder, move];
+                                int newIndex = NumEquatorOrders * newUdEdgeOrder + newEquatorOrder;
 
                                 float newPruningValue = pruningTable[index] + weights[move];
 

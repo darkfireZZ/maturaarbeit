@@ -24,9 +24,9 @@ namespace CubingTests
             Alg alg = Alg.FromString(algString);
             CubieCube cube = CubieCube.FromAlg(alg);
 
-            int co = Coordinates.GetCoCoord(cube);
-            int eo = Coordinates.GetEoCoord(cube);
-            int equator = Coordinates.GetEquatorDistributionCoord(cube);
+            int co = Coordinates.GetCornerOrientation(cube);
+            int eo = Coordinates.GetEdgeOrientation(cube);
+            int equator = Coordinates.GetEquatorDistribution(cube);
 
             int pruningIndex = PruningTables.GetPhase1PruningIndex(co, eo, equator);
 
@@ -41,7 +41,7 @@ namespace CubingTests
         {
             TableController.InitializePhase1PruningTable();
 
-            Assert.AreEqual(TableController.Phase1PruningTable.Length, TwoPhaseConstants.PruningTableSizePhase1);
+            Assert.AreEqual(TableController.Phase1PruningTable.Length, PruningTableConstants.PruningTableSizePhase1);
 
             Assert.AreEqual(TableController.Phase1PruningTable.Max(), 12);
         }
@@ -59,10 +59,10 @@ namespace CubingTests
             Alg alg = Alg.FromString(algString);
             CubieCube cube = CubieCube.FromAlg(alg);
 
-            int cornerPermutation = Coordinates.GetCpCoord(cube);
-            int equatorPermutation = Coordinates.GetEquatorPermutationCoord(cube);
+            int cornerPermutation = Coordinates.GetCornerPermutation(cube);
+            int equatorPermutation = Coordinates.GetEquatorOrder(cube);
 
-            int pruningIndex = TwoPhaseConstants.NumEquatorPermutations * cornerPermutation + equatorPermutation;
+            int pruningIndex = Coordinates.NumEquatorOrders * cornerPermutation + equatorPermutation;
 
             int pruningValue = TableController.Phase2CornerEquatorPruningTable[pruningIndex];
 
@@ -76,7 +76,7 @@ namespace CubingTests
 
             TableController.InitializePhase2CornerEquatorPruningTable();
 
-            Assert.AreEqual(TableController.Phase2CornerEquatorPruningTable.Length, TwoPhaseConstants.CornerEquatorPruningTableSizePhase2);
+            Assert.AreEqual(TableController.Phase2CornerEquatorPruningTable.Length, PruningTableConstants.CornerEquatorPruningTableSizePhase2);
 
             //The phase 2 pruning tables don't store the exact number of
             //moves needed to solve the case, the number stored is a minimum
@@ -97,10 +97,10 @@ namespace CubingTests
             Alg alg = Alg.FromString(algString);
             CubieCube cube = CubieCube.FromAlg(alg);
 
-            int udEdgePermutation = Coordinates.GetUdEdgePermutationCoord(cube);
-            int cornerPermutation = Coordinates.GetCpCoord(cube);
+            int udEdgeOrder = Coordinates.GetUdEdgeOrder(cube);
+            int cornerPermutation = Coordinates.GetCornerPermutation(cube);
 
-            int pruningIndex = PruningTables.GetPhase2CornerUdPruningIndex(udEdgePermutation, cornerPermutation);
+            int pruningIndex = PruningTables.GetPhase2CornerUdPruningIndex(udEdgeOrder, cornerPermutation);
 
             int pruningValue = TableController.Phase2CornerUdPruningTable[pruningIndex];
 
@@ -113,7 +113,7 @@ namespace CubingTests
         {
             TableController.InitializePhase2CornerUdPruningTable();
 
-            Assert.AreEqual(TableController.Phase2CornerUdPruningTable.Length, TwoPhaseConstants.CornerUdPruningTableSizePhase2);
+            Assert.AreEqual(TableController.Phase2CornerUdPruningTable.Length, PruningTableConstants.CornerUdPruningTableSizePhase2);
 
             //The phase 2 pruning tables don't store the exact number of
             //moves needed to solve the case, the number stored is a minimum

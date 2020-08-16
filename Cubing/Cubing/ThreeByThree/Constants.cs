@@ -31,7 +31,7 @@
         /// </summary>
         public const int NumEquatorEdges = 4;
         /// <summary>
-        /// The number of edges in the U and D layers.
+        /// The number of edge pieces in the U and D layers.
         /// </summary>
         public const int NumUdEdges = NumUEdges + NumDEdges;
 

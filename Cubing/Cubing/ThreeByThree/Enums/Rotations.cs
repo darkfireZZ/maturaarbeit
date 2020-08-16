@@ -67,16 +67,13 @@ namespace Cubing.ThreeByThree
         /// <summary>
         /// Get the axis of a rotation.
         /// </summary>
-        /// <param name="rotation">
-        /// The rotation to get the axis of.
-        /// </param>
+        /// <param name="rotation">The rotation to get the axis of.</param>
         /// <returns>The axis of the specified rotation.</returns>
         public static Axis Axis(this Rotation rotation)
             => (Axis)((int)rotation / 3);
 
         /// <summary>
-        /// Get the number of quarter turns in clockwise direction of the
-        /// rotation.
+        /// Get the number of quarter turns in clockwise direction of the rotation.
         /// </summary>
         /// <param name="rotation">
         /// The rotation to get the number of quarter turns of.
@@ -86,8 +83,8 @@ namespace Cubing.ThreeByThree
             => (int)rotation % 3 + 1;
 
         /// <summary>
-        /// Get the rotation on the specified axis with the specified
-        /// number of quarter turns.
+        /// Get the rotation on the specified axis with the specified number of
+        /// quarter turns.
         /// </summary>
         /// <param name="axis">
         /// The axis of the rotation.
@@ -96,8 +93,8 @@ namespace Cubing.ThreeByThree
         /// The number of quarter turns of the rotation.
         /// </param>
         /// <returns>
-        /// The rotation on the specified face with the specified number
-        /// of quarter turns.
+        /// The rotation on the specified face with the specified number of
+        /// quarter turns.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// Thrown if <paramref name="quarterTurns"/> has a value other
@@ -124,21 +121,18 @@ namespace Cubing.ThreeByThree
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <c>rotation / 3</c> is the axis of a rotation. Where 0 means it is
-    /// around the x axis, 1 means it is around the y axis and 2 means it
-    /// is around the z axis.
+    /// <c>rotation / 3</c> is the index of the axis of a rotation.
     /// </para>
     /// <para>
-    /// <c>rotation % 3 + 1</c> is the number of quarter turns of a
-    /// rotation.
+    /// <c>rotation % 3 + 1</c> is the number of quarter turns of a rotation.
     /// </para>
     /// </remarks>
     public enum Rotation : int
     {
-        #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        #pragma warning disable CS1591
         x1 = 0, x2 = 1, x3 = 2,
         y1 = 3, y2 = 4, y3 = 5,
         z1 = 6, z2 = 7, z3 = 8
-        #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+        #pragma warning restore CS1591
     }
 }

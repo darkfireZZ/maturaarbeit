@@ -8,35 +8,25 @@ using static Cubing.ThreeByThree.Constants;
 namespace Cubing.ThreeByThree
 {
     //TODO test if array needs to be readonly
+    //TODO implement GetHashCode
     /// <summary>
     /// An immutable class for manipulating and retrieving information about
     /// algs.
     /// </summary>
-    #pragma warning disable CS0659 // Typ überschreibt Object.Equals(object o), überschreibt jedoch nicht Object.GetHashCode()
-    #pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
-    public class Alg : IEnumerable<Move>, IEquatable<IEnumerable<Move>>, IEquatable<string>
-    #pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
-    #pragma warning restore CS0659 // Typ überschreibt Object.Equals(object o), überschreibt jedoch nicht Object.GetHashCode()
+    public class Alg : IEnumerable<Move>, IEquatable<IEnumerable<Move>>
     {
         /// <summary>
         /// Compare if two algs are equal.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// Two algs are considered equal if they are enumerable and
+        /// Two algs are considered equal if they are not null and
         /// contain the same moves in the same order.
         /// </para>
-        /// <para>
-        /// See also <seealso cref="Alg.Equals(object)"/>.
-        /// </para>
         /// </remarks>
-        /// <param name="alg1">First alg to compare.</param>
-        /// <param name="alg2">Second alg to compare.</param>
-        /// <returns>Whether the two algs are equal</returns>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="alg1"/> of <paramref name="alg2"/>
-        /// is null.
-        /// </exception>
+        /// <param name="alg1">The first alg to compare.</param>
+        /// <param name="alg2">The second alg to compare.</param>
+        /// <returns>Whether the two algs are equal.</returns>
         public static bool AreEqual(IEnumerable<Move> alg1, IEnumerable<Move> alg2)
         {
             if (alg1 is null || alg2 is null)
@@ -49,28 +39,10 @@ namespace Cubing.ThreeByThree
         }
 
         /// <summary>
-        /// Compare if an alg is equal to a string.
-        /// </summary>
-        /// <param name="alg">The alg to compare.</param>
-        /// <param name="algString">The string to compare.</param>
-        /// <returns>Whether the alg is equal to the string.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="alg"/> of
-        /// <paramref name="algString"/> is null.
-        /// </exception>
-        public static bool AreEqual(IEnumerable<Move> alg, string algString)
-        {
-            if (alg is null || algString is null)
-                return false;
-
-            return Alg.AreEqual(alg, Alg.FromString(algString));
-        }
-
-        /// <summary>
         /// Compare if an alg is equal to another alg.
         /// </summary>
-        /// <param name="alg1">First alg to compare.</param>
-        /// <param name="alg2">Second alg to compare.</param>
+        /// <param name="alg1">The first alg to compare.</param>
+        /// <param name="alg2">The second alg to compare.</param>
         /// <returns>Whether the two algs are equal.</returns>
         public static bool operator== (Alg alg1, IEnumerable<Move> alg2)
             => AreEqual(alg1, alg2);
@@ -87,12 +59,12 @@ namespace Cubing.ThreeByThree
         /// <summary>
         /// Concatenates two algs.
         /// </summary>
-        /// <param name="alg1">First alg.</param>
-        /// <param name="alg2">Second alg.</param>
-        /// <returns>The two algs concatenated.</returns>
+        /// <param name="alg1">The first alg.</param>
+        /// <param name="alg2">The second alg.</param>
+        /// <returns>The two specified algs concatenated.</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="alg1"/> is null or if
-        /// <paramref name="alg2"/> is null.
+        /// Thrown if <paramref name="alg1"/> or <paramref name="alg2"/> is
+        /// null.
         /// </exception>
         public static Alg operator+ (Alg alg1, Alg alg2)
         {
@@ -105,31 +77,38 @@ namespace Cubing.ThreeByThree
         }
 
         /// <summary>
-        /// Appends an alg to an empty alg a specific number of times.
+        /// Repeat an alg.
         /// </summary>
-        /// <param name="alg">The alg to append.</param>
-        /// <param name="times">The number of timer to append.</param>
+        /// <param name="alg">The alg to repeat.</param>
+        /// <param name="numTimes">The number of repetitions.</param>
         /// <returns>
-        /// <paramref name="alg"/> appended to <see cref="Empty"/>
-        /// <paramref name="times"/> times.
+        /// <paramref name="alg"/> repeated for the specified number of times.
         /// </returns>
-        public static Alg operator* (Alg alg, int times)
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="alg"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown if <paramref name="numTimes"/> is negative.
+        /// </exception>
+        public static Alg operator* (Alg alg, int numTimes)
         {
             if (alg is null)
                 throw new ArgumentNullException(nameof(alg) + " is null.");
-            if (times < 0)
-                throw new ArgumentOutOfRangeException(nameof(times) + " is smaller than 0: " + times);
+            if (numTimes < 0)
+                throw new ArgumentOutOfRangeException(nameof(numTimes) + " is smaller than 0: " + numTimes);
 
-            Alg returnValue = Alg.Empty;
-            for (int i = 0; i < times; i++)
-                returnValue += alg;
-            return returnValue;
+            Alg repeatedAlg = Alg.Empty;
+            for (int repetition = 0; repetition < numTimes; repetition++)
+                repeatedAlg += alg;
+            return repeatedAlg;
         }
 
         /// <summary>
         /// Get the string representation of an alg.
         /// </summary>
-        /// <param name="alg">The alg to get the string of.</param>
+        /// <param name="alg">
+        /// The alg to get the string representation of.
+        /// </param>
         /// <returns>
         /// The string representation of <paramref name="alg"/>.
         /// </returns>
@@ -151,8 +130,8 @@ namespace Cubing.ThreeByThree
         }
 
         /// <summary>
-        /// Get the inverse of an alg (reverse the sequence and change any move
-        /// on the face <c>fa</c> from <c>fa1</c> to <c>fa3</c> and vice versa).
+        /// Get the inverse of an alg (reverse the sequence and change and
+        /// change the direction of all moves).
         /// </summary>
         /// <param name="alg">The alg to get the inverse of.</param>
         /// <returns>
@@ -204,7 +183,7 @@ namespace Cubing.ThreeByThree
         /// Thrown if <paramref name="alg"/> is null.
         /// </exception>
         public static Alg FromEnumerable(IEnumerable<Move> alg)
-            => Alg.FromEnumerable(alg, 0, alg.Count());
+            => FromEnumerable(alg, 0, alg.Count());
 
         /// <summary>
         /// Create an <see cref="Alg"/> from enumerable.
@@ -213,7 +192,7 @@ namespace Cubing.ThreeByThree
         /// <param name="startIndex">
         /// The index to start copying at.
         /// </param>
-        /// <param name="stopIndex"> The index to stop copying at </param>
+        /// <param name="endIndex"> The index to stop copying at </param>
         /// <returns>The copied alg.</returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="alg"/> is null.
@@ -224,63 +203,59 @@ namespace Cubing.ThreeByThree
         /// </exception>
         /// <exception cref="ArgumentException">
         /// Thrown if <c><paramref name="startIndex"/> &gt;
-        /// <paramref name="stopIndex"/></c>.
+        /// <paramref name="endIndex"/></c>.
         /// </exception>
-        public static Alg FromEnumerable(IEnumerable<Move> alg, int startIndex, int stopIndex)
+        public static Alg FromEnumerable(IEnumerable<Move> alg, int startIndex, int endIndex)
         {
+            #region parameter checks
             if (alg is null)
                 throw new ArgumentNullException(nameof(alg) + " is null");
             if (startIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(startIndex) +
-                    " is smaller than 0: " + startIndex);
-            if (stopIndex > alg.Count())
-                throw new ArgumentOutOfRangeException(nameof(stopIndex) +
-                    " is larger than the size of " +
-                    nameof(alg) + ": " + stopIndex);
-            if (startIndex > stopIndex)
-                throw new ArgumentException(nameof(startIndex) +
-                    " (" + startIndex + ") is larger than " +
-                    nameof(stopIndex) + " (" + stopIndex + ").");
+                throw new ArgumentOutOfRangeException(nameof(startIndex) + " is smaller than 0: " + startIndex);
+            if (endIndex > alg.Count())
+                throw new ArgumentOutOfRangeException(nameof(endIndex) + " is larger than the size of " + nameof(alg) + ": " + endIndex);
+            if (startIndex > endIndex)
+                throw new ArgumentException(nameof(startIndex) + " (" + startIndex + ") is larger than " + nameof(endIndex) + " (" + endIndex + ").");
+            #endregion parameter checks
 
             return new Alg(alg
                    .Skip(startIndex)
-                   .Take(stopIndex - startIndex)
+                   .Take(endIndex - startIndex)
                    .ToArray());
         }
 
         /// <summary>
-        /// Create an alg from string.
+        /// Create an alg from a string representation.
         /// </summary>
-        /// <param name="alg">The string the alg is created from.</param>
-        /// <returns>A new alg created from a string.</returns>
-        /// <exception cref="ArgumentException">
-        /// Thrown if <paramref name="alg"/> is invalid.
-        /// </exception>
+        /// <param name="algString">A string representation of an alg.</param>
+        /// <returns>The alg representated by the given string.</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="alg"/> is null.
+        /// Thrown if <paramref name="algString"/> is null.
         /// </exception>
-        public static Alg FromString(string alg)
+        /// <exception cref="ArgumentException">
+        /// Thrown if <paramref name="algString"/> is not a representation of
+        /// an alg.
+        /// </exception>
+        public static Alg FromString(string algString)
         {
-            if (alg is null)
-                throw new ArgumentNullException(nameof(alg) +
-                    " is null.");
+            if (algString is null)
+                throw new ArgumentNullException(nameof(algString) + " is null.");
 
             return new Alg
             (
-                alg.Split(' ')
-                   .Select(moveString => Moves.MoveFromString(moveString))
-                   .ToArray()
+                algString.Split(' ')
+                    .Select(moveString => Moves.MoveFromString(moveString))
+                    .ToArray()
             );
         }
 
         /// <summary>
-        /// Generate a alg with a specific number of random moves. Does not
-        /// allow two consecutive moves on the same face or three consecutive
-        /// moves on the same axis.
+        /// Create a random alg. Does not allow two consecutive moves on the
+        /// same face or three consecutive moves on the same axis.
         /// </summary>
         /// <param name="length">The length of the alg.</param>
         /// <param name="random">The random number generator used.</param>
-        /// <returns>A random alg with the specified length.</returns>
+        /// <returns>A random alg.</returns>
         /// <exception cref="ArgumentNullException">
         /// Thrown if <paramref name="random"/> is null.
         /// </exception>
@@ -320,50 +295,44 @@ namespace Cubing.ThreeByThree
                     faces[index] = face;
                 }
             }
+
             Move[] moves = new Move[length];
             for (int index = 0; index < length; index++)
                 moves[index] = Moves.MoveFromFaceAndQuarterTurns(faces[index], random.Next(1, 4));
+
             return new Alg(moves);
         }
 
         /// <summary>
-        /// Generate a alg with a specific number of random moves. Does not
-        /// allow two consecutive moves on the same face or three consecutive
-        /// moves on the same axis. For all possible moves at one point in the
-        /// alg their probability is equal to the probability of the move
-        /// divided by the sum of all possible moves' probabilities.
+        /// Create a random alg. Does not allow two consecutive moves on the
+        /// same face or three consecutive moves on the same axis. At every
+        /// point in the alg the probability of each move is equal to the
+        /// probability of the move divided by the sum of all possible moves'
+        /// probabilities.
         /// </summary>
         /// <param name="length">The length of the alg.</param>
         /// <param name="random">The random number generator used.</param>
         /// <param name="probabilities">
         /// The probability of each move relative to the other moves.
         /// </param>
-        /// <returns>A random alg with the specified length.</returns>
+        /// <returns>A random alg.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown if <paramref name="random"/> or
+        /// <paramref name="probabilities"/> is null.
+        /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
         /// Thrown if <paramref name="length"/> is smaller than zero.
         /// </exception>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="random"/> is null.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        /// Thrown if <paramref name="probabilities"/> is null.
-        /// </exception>
         /// <exception cref="ArgumentException">
-        /// Thrown if <paramref name="probabilities"/> does not have length 18.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Thrown if <paramref name="probabilities"/> contains a negative value.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// Thrown if too many elements of <paramref name="probabilities"/> are
-        /// 0 and therefore make it impossible to create an alg with the given
-        /// properties.
+        /// Thrown if <paramref name="probabilities"/> does not have length 18,
+        /// contains at least one negative value or if too many moves have a
+        /// probability of 0.
         /// </exception>
         public static Alg FromRandomMoves(int length, Random random, double[] probabilities)
         {
             #region parameter checks
             if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length) + " is smaller than 0: " + length);
+                throw new ArgumentOutOfRangeException(nameof(length) + " is negative: " + length);
             if (random is null)
                 throw new ArgumentNullException(nameof(random) + " is null.");
             if (probabilities is null)
@@ -373,8 +342,9 @@ namespace Cubing.ThreeByThree
 
             for (int index = 0; index < NumMoves; index++)
                 if (probabilities[index] < 0d)
-                    throw new ArgumentException(nameof(probabilities) + " cannot contains negative values (index " + index + "): " + probabilities[index]);
-            
+                    throw new ArgumentException(nameof(probabilities) + " cannot contain negative values (index " + index + "): " + probabilities[index]);
+
+            //IMPR
             if (length == 1)
             {
                 if (probabilities.Sum() == 0d)
@@ -382,11 +352,10 @@ namespace Cubing.ThreeByThree
             }
             else if (length == 2)
             {
-                //IMPR
                 int faceCount = probabilities
-                    .Select((probability, move) => (probability, move))
+                    .Select((probability, index) => (probability, face: ((Move)index).Face()))
                     .Where(element => element.probability != 0d)
-                    .Select(element => ((Move)element.move).Face())
+                    .Select(element => element.face)
                     .Distinct()
                     .Count();
 
@@ -413,7 +382,6 @@ namespace Cubing.ThreeByThree
                 double maxMoveValue = probabilities.Sum();
                 Axis forbiddenAxis = (Axis)(-1);
                 Face forbiddenFace = (Face)(-1);
-
                 
                 if (index > 0)
                 {
@@ -464,63 +432,64 @@ namespace Cubing.ThreeByThree
         /// </summary>
         public static Alg Empty = new Alg(new Move[0]);
 
-        private readonly ReadOnlyCollection<Move> _moves = null;
+        private readonly Move[] _moves = null;
 
         private Alg(Move[] moves)
-            => _moves = Array.AsReadOnly(moves);
+            => _moves = (Move[])moves.Clone();
 
         /// <summary>
-        /// Get/set the move at a specified index.
+        /// Get the move at a specific index.
         /// </summary>
         /// <param name="index">The index to be edited.</param>
         /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException">
+        /// <exception cref="IndexOutOfRangeException">
         /// Thrown if <paramref name="index"/> is out of range.
         /// </exception>
-        public Move this[int index] => _moves[index];
+        public Move this[int index]
+        {
+            get
+            {
+                if ((uint)index >= this.Length)
+                    throw new IndexOutOfRangeException("Index is out of range: " + index);
+
+                return _moves[index];
+            }
+        }
 
         /// <summary>
         /// The length of the alg.
         /// </summary>
-        public int Length => _moves.Count;
+        public int Length => _moves.Length;
 
         /// <summary>
         /// Get how many times each type of move is contained in the alg.
-        /// </summary>
-        /// <remarks>
-        /// <c>GetNumberOfEachMove()[(int)m]</c> (where m is any
-        /// type of move) returns how many times m is contained in the
+        /// <c><see cref="GetCountOfEachMove()"/>[(int)m]</c> (where m is a
+        /// <see cref="Move"/>) returns how many times m is contained in the
         /// alg.
-        /// </remarks>
+        /// </summary>
         /// <returns>
         /// An array containing the count of each type of move in the alg.
         /// </returns>
         public int[] GetCountOfEachMove()
         {
-            int[] numberOfEachMove = new int[NumMoves];
+            int[] numberOfEachMove = Enumerable.Repeat(0, NumMoves)
+                                               .ToArray();
             foreach (int move in _moves) numberOfEachMove[move]++;
             return numberOfEachMove;
         }
 
         /// <summary>
-        /// Determines whether this object is equal to another object. It
-        /// is considered equal to another object if either the other
-        /// object is enumerable and contains the same moves in the same
-        /// order or if the other object is a string that equals this
-        /// objects string representation.
+        /// Determines whether this object is equal to another object. They are
+        /// considered equal, if the other object is enumerable and contains
+        /// the same moves in the same order.
         /// </summary>
-        /// <remarks>
-        /// See also <seealso cref="AreEqual(IEnumerable{Move}, IEnumerable{Move})"/>.
-        /// </remarks>
         /// <param name="obj">The object to compare to.</param>
         /// <returns>
-        /// Whether this object is equal to another object.
+        /// Whether this object is equal to the other object.
         /// </returns>
         public override bool Equals(object obj)
         {
-            if (obj is string)
-                return Alg.AreEqual(this, obj as string);
-            else if (obj is IEnumerable<Move>)
+            if (obj is IEnumerable<Move>)
                 return Alg.AreEqual(this, obj as IEnumerable<Move>);
             else
                 return false;
@@ -528,44 +497,26 @@ namespace Cubing.ThreeByThree
 
         /// <summary>
         /// Determines whether this alg is equal to another alg. They are
-        /// considered equal if both contain the same moves in the same
+        /// considered equal, if both contain the same moves in the same
         /// order.
         /// </summary>
-        /// <remarks>
-        /// See also <seealso cref="AreEqual(IEnumerable{Move}, IEnumerable{Move})"/>.
-        /// </remarks>
         /// <param name="other">The alg to compare to.</param>
         /// <returns>
-        /// Whether this alg is equal to another alg.
+        /// Whether this alg is equal to the other alg.
         /// </returns>
         public bool Equals(IEnumerable<Move> other)
             => Alg.AreEqual(this, other);
 
-
         /// <summary>
-        /// Determines whether this alg is equal to a string. They are
-        /// considered equal if the string is equal to the string
-        /// representation of the alg.
-        /// </summary>
-        /// <remarks>
-        /// See also <seealso cref="AreEqual(IEnumerable{Move}, string)"/>.
-        /// </remarks>
-        /// <param name="other">The string to compare to.</param>
-        /// <returns>
-        /// Whether this alg is equal to a string.
-        /// </returns>
-        public bool Equals(string other)
-            => Alg.AreEqual(this, other);
-
-        /// <summary>
-        /// Inverse this object.
+        /// Get the inverse of this alg (reverse the sequence and change and
+        /// change the direction of all moves).
         /// </summary>
         /// <returns>The inverse of this object.</returns>
         public Alg Inverse()
             => Alg.Inverse(this);
 
         /// <summary>
-        /// Rotate this object.
+        /// Rotate this alg.
         /// </summary>
         /// <param name="rotation">The rotation to apply.</param>
         /// <returns>
@@ -576,7 +527,7 @@ namespace Cubing.ThreeByThree
 
         /// <summary>
         /// <inheritdoc/>
-        /// The same as <see cref="ToString(IEnumerable{Move})"/>.
+        /// Same as <see cref="ToString(IEnumerable{Move})"/>.
         /// </summary>
         /// <returns><inheritdoc/></returns>
         public override string ToString()
@@ -606,7 +557,7 @@ namespace Cubing.ThreeByThree
 
         /// <inheritdoc/>
         public IEnumerator<Move> GetEnumerator()
-            => _moves.GetEnumerator();
+            => ((IEnumerable<Move>)_moves).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
             => this.GetEnumerator();

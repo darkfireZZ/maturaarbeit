@@ -3,9 +3,9 @@
     /// <summary>
     /// All the edges of a 3x3x3 cube.
     /// </summary>
-    public enum Edge
+    public enum Edge : int
     {
-        #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        #pragma warning disable CS1591
         UF = 0,
         UL = 1,
         UB = 2,
@@ -18,6 +18,6 @@
         FL = 9,
         BL = 10,
         BR = 11
-        #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+        #pragma warning restore CS1591
     }
 }

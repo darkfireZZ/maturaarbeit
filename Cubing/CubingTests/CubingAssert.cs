@@ -12,8 +12,8 @@ namespace CubingTests
             CubingAssert.HasFourEquatorEdges(expected);
             CubingAssert.HasFourEquatorEdges(actual);
 
-            IEnumerator<(Edge edge, int index)> enumerator1 = expected.EP.Select((edge, index) => (edge, index)).GetEnumerator();
-            IEnumerator<(Edge edge, int index)> enumerator2 = actual.EP.Select((edge, index) => (edge, index)).GetEnumerator();
+            IEnumerator<(Edge edge, int index)> enumerator1 = expected.EdgePermutation.Select((edge, index) => (edge, index)).GetEnumerator();
+            IEnumerator<(Edge edge, int index)> enumerator2 = actual.EdgePermutation.Select((edge, index) => (edge, index)).GetEnumerator();
 
             for (int equatorEdge = 0; equatorEdge < Constants.NumEquatorEdges; equatorEdge++)
             {
@@ -29,7 +29,7 @@ namespace CubingTests
 
         public static void HasFourEquatorEdges(CubieCube cube)
         {
-            int count = cube.EP.Count(edge => edge >= Edge.FR);
+            int count = cube.EdgePermutation.Count(edge => edge >= Edge.FR);
             if (count != Constants.NumEquatorEdges)
                 throw new AssertFailedException("Cube has " + count + " equator edges instead of 4.");
         }

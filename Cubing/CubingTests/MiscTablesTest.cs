@@ -2,8 +2,8 @@
 using Cubing.ThreeByThree.TwoPhase;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using static Cubing.ThreeByThree.Coordinates;
-using static Cubing.ThreeByThree.TwoPhase.TwoPhaseConstants;
+using static Cubing.ThreeByThree.TwoPhase.Coordinates;
+using static Cubing.ThreeByThree.TwoPhase.Symmetries;
 
 namespace CubingTests
 {
@@ -14,13 +14,13 @@ namespace CubingTests
         [TestMethod]
         public void ConjugateCoCoordinateTest()
         {
-            Assert.AreEqual(2187, SymmetryReduction.ConjugateCoCoordinate.GetLength(0));
-            Assert.AreEqual(16, SymmetryReduction.ConjugateCoCoordinate.GetLength(1));
+            Assert.AreEqual(2187, SymmetryReduction.ConjugateCornerOrientationCoordinate.GetLength(0));
+            Assert.AreEqual(16, SymmetryReduction.ConjugateCornerOrientationCoordinate.GetLength(1));
 
             CubieCube coordCube = CubieCube.CreateSolved();
-            for (int co = 0; co < NumCoCoords; co++)
+            for (int co = 0; co < NumCornerOrientations; co++)
             {
-                SetCoCoord(coordCube, co);
+                SetCornerOrientation(coordCube, co);
                 for (int sym = 0; sym < NumSymmetriesDh4; sym++)
                 {
                     CubieCube symCube = Symmetries.SymmetryCubes[sym].Clone();
@@ -28,9 +28,9 @@ namespace CubingTests
                     symCube.Multiply(Symmetries.SymmetryCubes[Symmetries.InverseIndex[sym]]);
 
                     CubieCube result = CubieCube.CreateSolved();
-                    SetCoCoord(result, SymmetryReduction.ConjugateCoCoordinate[co, sym]);
+                    SetCornerOrientation(result, SymmetryReduction.ConjugateCornerOrientationCoordinate[co, sym]);
 
-                    CollectionAssert.AreEqual(symCube.CO, result.CO);
+                    CollectionAssert.AreEqual(symCube.CornerOrientation, result.CornerOrientation);
                 }
             }
         }
@@ -41,24 +41,24 @@ namespace CubingTests
         {
             CubieCube cube = CubieCube.CreateSolved();
 
-            for (int equator = 0; equator < NumEquatorDistributionCoords; equator++)
+            for (int equator = 0; equator < NumEquatorDistributions; equator++)
             {
-                SetEquatorDistributionCoord(cube, equator);
-                for (int eo = 0; eo < NumEoCoords; eo++)
+                SetEquatorDistribution(cube, equator);
+                for (int eo = 0; eo < NumEdgeOrientations; eo++)
                 {
-                    SetEoCoord(cube, eo);
+                    SetEdgeOrientation(cube, eo);
 
-                    int reducedCoord = SymmetryReduction.ReduceEoEquatorCoordinate[equator * NumEoCoords + eo];
+                    int reducedCoord = SymmetryReduction.ReduceEoEquatorCoordinate[equator * NumEdgeOrientations + eo];
                     int expandedCoord = SymmetryReduction.ExpandEoEquatorCoordinate[reducedCoord];
 
-                    int symmetryIndex = SymmetryReduction.EoEquatorReductionSymmetry[equator * NumEoCoords + eo];
+                    int symmetryIndex = SymmetryReduction.EoEquatorReductionSymmetry[equator * NumEdgeOrientations + eo];
 
                     CubieCube symCube = Symmetries.SymmetryCubes[symmetryIndex].Clone();
                     symCube.Multiply(cube);
                     symCube.Multiply(Symmetries.SymmetryCubes[Symmetries.InverseIndex[symmetryIndex]]);
 
-                    Assert.AreEqual(expandedCoord % NumEoCoords, GetEoCoord(symCube));
-                    Assert.AreEqual(expandedCoord / NumEoCoords, GetEquatorDistributionCoord(symCube));
+                    Assert.AreEqual(expandedCoord % NumEdgeOrientations, GetEdgeOrientation(symCube));
+                    Assert.AreEqual(expandedCoord / NumEdgeOrientations, GetEquatorDistribution(symCube));
                 }
             }
         }
@@ -96,7 +96,7 @@ namespace CubingTests
         {
             bool found;
 
-            for (int expanded = 0; expanded < NumEquatorDistributionCoords * NumEoCoords; expanded++)
+            for (int expanded = 0; expanded < NumEquatorDistributions * NumEdgeOrientations; expanded++)
             {
                 found = false;
 
@@ -104,8 +104,8 @@ namespace CubingTests
                 int expandedSym = SymmetryReduction.ExpandEoEquatorCoordinate[reduced];
 
                 CubieCube expandedCube = CubieCube.CreateSolved();
-                SetEoCoord(expandedCube, expanded % 2048);
-                SetEquatorDistributionCoord(expandedCube, expanded / 2048);
+                SetEdgeOrientation(expandedCube, expanded % 2048);
+                SetEquatorDistribution(expandedCube, expanded / 2048);
 
                 for (int sym = 0; sym < NumSymmetriesDh4; sym++)
                 {
@@ -113,8 +113,8 @@ namespace CubingTests
                     symCube.MultiplyEdges(expandedCube);
                     symCube.MultiplyEdges(Symmetries.SymmetryCubes[Symmetries.InverseIndex[sym]]);
 
-                    if (expandedSym % 2048 == GetEoCoord(symCube) &&
-                        expandedSym / 2048 == GetEquatorDistributionCoord(symCube))
+                    if (expandedSym % 2048 == GetEdgeOrientation(symCube) &&
+                        expandedSym / 2048 == GetEquatorDistribution(symCube))
                     {
                         found = true;
                         break;
