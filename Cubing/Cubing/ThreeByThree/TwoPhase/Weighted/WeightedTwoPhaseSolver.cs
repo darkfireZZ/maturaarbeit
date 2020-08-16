@@ -18,7 +18,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// The maximum allowed length for a phase 2 solution.
         /// </summary>
         public static int MaxPhase2Length { get; set; } = 10;
-        //TODO calculate
+        //TODO calculate estimate
         /// <summary>
         /// The maximum allowed length for a phase 1 solution.
         /// </summary>
@@ -43,6 +43,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         private TimeSpan _timeout;
         private float _returnValue;
         private float _requiredValue;
+        private float _deltaMin;
 
         private CubieCube _notRotatedCube;
 
@@ -56,7 +57,7 @@ namespace Cubing.ThreeByThree.TwoPhase
         private int[] _currentPhase1Solution;
         private int[] _currentPhase2Solution;
 
-        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, float returnValue, float requiredValue, float[] weights, float[] weightedPhase2PruningTable, bool searchDifferentOrientations = true, bool searchInverse = true)
+        public static Alg FindSolution(CubieCube cubeToSolve, TimeSpan timeout, float returnValue, float requiredValue, float[] weights, float[] weightedPhase2PruningTable, float deltaMin = 0f, bool searchDifferentOrientations = true, bool searchInverse = true)
         {
             if (cubeToSolve is null)
                 throw new ArgumentNullException(nameof(cubeToSolve) + " is null.");
@@ -98,7 +99,8 @@ namespace Cubing.ThreeByThree.TwoPhase
                     _rotation = orientation % 3,
                     _inversed = orientation / 3 == 1,
                     _nonRotatedWeights = (float[])weights.Clone(), //create a copy to avoid issues caused by multithreading
-                    _weightedPhase2PruningTable = weightedPhase2PruningTable
+                    _weightedPhase2PruningTable = weightedPhase2PruningTable,
+                    _deltaMin = deltaMin
                 };
 
                 Thread solverThread = new Thread(new ThreadStart(solver.StartSearch));
@@ -165,8 +167,8 @@ namespace Cubing.ThreeByThree.TwoPhase
             }
             #endregion rotate weights
 
-            _phase1MoveOrder = MoveWeightsUtils.OrderMoves(Moves.AllMoves, _rotatedWeights);
-            _phase2MoveOrder = MoveWeightsUtils.OrderMoves(TwoPhaseConstants.Phase2Moves, _rotatedWeights);
+            _phase1MoveOrder = MoveWeightsUtils.OrderedMoves(Moves.AllMoves, _rotatedWeights);
+            _phase2MoveOrder = MoveWeightsUtils.OrderedMoves(TwoPhaseConstants.Phase2Moves, _rotatedWeights);
 
             //calculate coordinates
             int co = Coordinates.GetCoCoord(rotatedCube);
@@ -222,7 +224,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                 //NEXT adapt
                 int cornerEquatorPruningIndex = TwoPhaseConstants.NumEquatorPermutations * cp + equator;
                 double weightedCornerEquatorPruningValue = _weightedPhase2PruningTable[cornerEquatorPruningIndex];
-                if (weightedCornerEquatorPruningValue + phase1Cost > _bestSolutionCost.Value)
+                if (weightedCornerEquatorPruningValue + phase1Cost + _deltaMin > _bestSolutionCost.Value)
                     return;
                 int cornerEquatorPruningValue = TableController.Phase2CornerEquatorPruningTable[cornerEquatorPruningIndex];
                 if (cornerEquatorPruningValue > MaxPhase2Length)
@@ -343,7 +345,7 @@ namespace Cubing.ThreeByThree.TwoPhase
                 //NEXT adapt
                 float newCostSoFar = costSoFar + _rotatedWeights[move];
                 float weightedCornerEquatorPruningValue = _weightedPhase2PruningTable[cornerEquatorPruningIndex];
-                if (weightedCornerEquatorPruningValue + newCostSoFar > _bestSolutionCost.Value) //TODO better comment //double inaccuracies don't matter
+                if (weightedCornerEquatorPruningValue + newCostSoFar + _deltaMin > _bestSolutionCost.Value)
                     continue;
 
                 _currentPhase2Solution[depth] = move;

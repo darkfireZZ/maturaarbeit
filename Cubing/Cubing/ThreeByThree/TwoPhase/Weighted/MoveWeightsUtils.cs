@@ -36,7 +36,6 @@ namespace Cubing.ThreeByThree.TwoPhase
             }
         }
 
-        //IMPR doc
         /// <summary>
         /// Create a set of moves ordered by their weights.
         /// </summary>
@@ -49,15 +48,22 @@ namespace Cubing.ThreeByThree.TwoPhase
         /// <exception cref="InvalidWeightsException">
         /// Thrown if <paramref name="weights"/> is invalid.
         /// </exception>
-        public static IEnumerable<Move> OrderMoves(IEnumerable<Move> moves, float[] weights)
+        public static IEnumerable<Move> OrderedMoves(IEnumerable<Move> moves, float[] weights)
         {
             if (moves is null)
                 throw new ArgumentNullException(nameof(moves) + " is null.");
             ValidateWeights(weights);
 
-            return moves.Distinct().OrderBy(move => weights[(int)move]);
+            return moves.Distinct()
+                        .OrderBy(move => weights[(int)move]);
         }
 
+        /// <summary>
+        /// Calculate the cost of an alg for the given weights.
+        /// </summary>
+        /// <param name="alg">The alg to calculate the cost of.</param>
+        /// <param name="weights">The weights to use.</param>
+        /// <returns>The cost of an alg for the given weights.</returns>
         public static float CalculateCost(IEnumerable<Move> alg, float[] weights)
         {
             if (alg is null)
@@ -70,52 +76,12 @@ namespace Cubing.ThreeByThree.TwoPhase
 
             return cost;
         }
-
-        /// <summary>
-        /// Calculate weights from a collection of <see cref="CsTimerData"/>.
-        /// The weight at any given index (except 18) of the returned array
-        /// represents the weight of the HTM move with the corresponding index.
-        /// The weight at the 18th index represents the time required to pick
-        /// up and drop the cube. This method will only work for a specific
-        /// range of time values and works best around times of ~200 to ~300
-        /// millseconds per move.
-        /// </summary>
-        /// <param name="data">
-        /// The data from which the weights are calculated from.
-        /// </param>
-        /// <returns>
-        /// Weights calculated from a collection of <see cref="CsTimerData"/>.
-        /// </returns>
-        public static double[] CalculateWeights(IEnumerable<CsTimerData> data)
-        {
-            int numExamples = data.Count();
-            double[,] features = new double[numExamples, NumMoves + 1]; //18 moves + cube pickup time
-            double[] labels = new double[numExamples];
-
-            int exampleIndex = 0;
-            foreach (CsTimerData example in data)
-            {
-                if (example.Penalty == CubingPenalty.Okay)
-                {
-                    int[] countOfEachMove = Alg.FromString(example.Scramble).GetCountOfEachMove();
-                    for (int featureIndex = 0; featureIndex < NumMoves; featureIndex++)
-                        features[exampleIndex, featureIndex] = countOfEachMove[featureIndex];
-                    features[exampleIndex, NumMoves] = 1;
-                }
-
-                labels[exampleIndex] = example.Milliseconds;
-
-                exampleIndex++;
-            }
-
-            return LinearRegression.Learn(features, labels, learningRate: 0.05, numberOfIterations: 10000);
-        }
     }
 
     /// <summary>
     /// An exception only thrown by
-    /// <see cref="MoveWeightsUtils.ValidateWeights(double[])"/>. It indicates
-    /// that the weights were invalid. The inner exception explains the reason.
+    /// <see cref="MoveWeightsUtils.ValidateWeights(float[])"/>. It indicates
+    /// that the weights were invalid.
     /// </summary>
     public class InvalidWeightsException : ArgumentException
     {

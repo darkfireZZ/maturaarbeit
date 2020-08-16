@@ -178,7 +178,7 @@ namespace Cubing
             if (features.GetLength(1) != theta.Length)
                 throw new ArgumentException(nameof(features) + " and " + nameof(theta) + " have a different number of features.");
 
-            return (1d / (2 * features.GetLength(0))) * Predict(features, theta)
+            return (1d / features.GetLength(0)) * Predict(features, theta)
                 .Select((value, index) => Math.Abs((value - labels[index])))
                 .Sum();
         }

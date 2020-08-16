@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{D3F6
 	ProjectSection(SolutionItems) = preProject
 		CalculateWeights.csx = CalculateWeights.csx
 		CompareSolvers.csx = CompareSolvers.csx
+		TestDeltaMin.csx = TestDeltaMin.csx
 	EndProjectSection
 EndProject
 Global
