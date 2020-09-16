@@ -1,3 +1,5 @@
 # Maturaarbeit
 
 Hier befindet sich der Code für meine Maturaarbeit.
+
+Ich habe mich damit auseinandergesetzt, ein Programm zu schreiben, das möglichst schnelle Lösungswege für den Zauberwürfel generiert. «Schnell» bezieht sich im Zusammenhang meiner Arbeit nicht auf die Anzahl Bewegungen, die gebraucht werden, um den Würfel zu lösen, sondern vielmehr auf die Zeit, welche ein Mensch braucht, den Lösungsweg auszuführen. Unterschiedliche Bewegungen benötigen unterschiedlich lang. Im ersten Teil meiner Arbeit habe ich mich damit befasst, auszurechnen, wie lange ein Mensch hat, die jeweiligen Bewegungen auszuführen. Im zweiten Teil habe ich den Zwei-Phasen-Algorithmus implementiert. Dieser ist eine weit verbreitete Methode, um in geringer Zeit sehr kurze Lösungen für den Zauberwürfel zu finden. Anschliessend habe ich die Resultate meiner Berechnungen verwendet, um den Algorithmus so zu verändern, dass die Zeiten, welche ich den Bewegungen zugeordnet habe, in die Lösungssuche miteinbezogen werden.
